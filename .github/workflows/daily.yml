@@ -1,0 +1,40 @@
+name: Daily forecast update
+# 매일 06:10(한국시간) 공개 S-DoT 주간 CSV 확인 → 예측 JSON 재생성 → 커밋 → Pages 배포. 인증키 불필요.
+on:
+  schedule:
+    - cron: "10 21 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas numpy lightgbm holidays
+      - name: Update data and forecast
+        run: python pipeline/daily_update.py
+      - name: Commit if changed
+        run: |
+          git config user.name "calm-map-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/predictions.json data/live/hourly_5sensors.csv.gz
+          git diff --cached --quiet || git commit -m "자동 갱신: 예측 $(date -u -d '+9 hours' +%Y-%m-%d)"
+          git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v4

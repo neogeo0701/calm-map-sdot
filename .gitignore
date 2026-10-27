@@ -15,3 +15,4 @@ __pycache__/
 *.pyc
 .env
 model/attempts/long_history/raw/
+model/attempts/*/*.mp4
