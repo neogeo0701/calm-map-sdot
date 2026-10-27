@@ -165,7 +165,7 @@ function renderAlt(cond, recs) {
   box.hidden = false;
   box.innerHTML = a.none
     ? `이 시간대는 전반적으로 소리가 많은 편이에요.`
-    : `이 시간대는 전반적으로 소리가 많은 편이에요. <button type="button" class="alt-btn" data-day="${a.day}" data-slot="${a.slot}">${DOW[dt.getDay()]}요일(${a.day.slice(5).replace("-", "/")}) ${SLOTS[a.slot]}가 더 조용해요 →</button>
+    : `이 시간대는 전반적으로 소리가 많은 편이에요. <button type="button" class="alt-btn" data-day="${a.day}" data-slot="${a.slot}">${DOW[dt.getDay()]}요일(${dt.getMonth() + 1}/${dt.getDate()}) ${SLOTS[a.slot]}가 더 조용해요 →</button>
        <small>부담 점수 평균 ${a.now.toFixed(1)} → ${a.score.toFixed(1)}</small>`;
   const btn = box.querySelector(".alt-btn");
   if (btn) btn.addEventListener("click", () => {
