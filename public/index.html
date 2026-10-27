@@ -55,6 +55,7 @@
   <section class="panel" aria-labelledby="r-title" aria-live="polite">
     <h2 id="r-title">2. 추천 방문 3곳</h2>
     <p id="r-sub" class="muted"></p>
+    <div id="r-alt" class="alt" hidden></div>
     <p id="r-sum" class="rsum"></p>
     <ol id="recs" class="recs"></ol>
     <details class="how">
@@ -66,6 +67,7 @@
       갑자기 커지는 소리(돌발 소음 지수): 3dB 미만 <b>적은 편</b> · 3~4dB 미만 <b>보통</b> · 4dB 이상 <b>많은 편</b>.
       측정값이 정수 dB라 경계에 같은 값이 몰려, 실제 비율은 소리 크기 32·34·34%, 갑자기 커지는 소리 25·27·48%입니다.</p>
       <p>평균 오차, 단순 평균과의 비교, 부담 점수 계산식, 센서 번호는 각 카드의 "자세히 보기"에 있습니다.</p>
+      <p><b>시간대 대안 추천</b>: 추천 3곳이 모두 "갑자기 커지는 소리 많은 편"이거나 모두 "소리 크기 많은 편"이면, 고른 날짜와 앞뒤 하루(예측 기간 안)의 다른 시간대 중 추천 3곳의 부담 점수 평균이 가장 낮은 시간대를 안내합니다. 지금보다 낮은 시간대가 없으면 대안을 띄우지 않습니다.</p>
       <p>코드: <a href="https://github.com/neogeo0701/calm-map-sdot/blob/main/public/app.js">public/app.js</a>의 <code>score()</code>, <code>recommend()</code></p>
     </details>
   </section>

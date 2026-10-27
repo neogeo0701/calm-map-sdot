@@ -94,6 +94,7 @@ function render() {
   const recs = recommend(cond);
   const lv = { low: "낮음", mid: "보통", high: "높음" };
   $("#r-sub").textContent = `${fmtDay(cond.day)} ${cond.slot.replace("-", "~")}시 · 소리 크기 민감도 ${lv[cond.level]} · 갑작스러운 소리 민감도 ${lv[cond.spike]}`;
+  renderAlt(cond, recs);
   $("#r-sum").innerHTML = recs.map((r, i) => `<span><b>${i + 1}</b> ${r.site.name} ${r.hour}시</span>`).join("");
   if (!recs.length) {
     $("#recs").innerHTML = `<li class="rec"><span class="tag na">정보 부족</span> 고른 시간대에 예측값이 있는 장소가 없습니다.</li>`;
@@ -130,6 +131,48 @@ function render() {
       </li>`;
     })
     .join("");
+}
+
+const SLOTS = { "9-12": "오전 9~12시", "12-15": "낮 12~15시", "15-18": "오후 15~18시", "18-21": "저녁 18~21시" };
+const avgScore = (recs) => recs.reduce((a, r) => a + r.score, 0) / recs.length;
+
+// 시간대 대안 추천: 추천 3곳이 모두 "많은 편"(갑자기 커지는 소리 또는 소리 크기)일 때,
+// 같은 날짜·앞뒤 하루의 다른 시간대 중 추천 3곳 부담 점수 평균이 가장 낮은 곳(지금보다 낮을 때만)
+function altSlot(cond, recs) {
+  if (recs.length < 3) return null;
+  const allMany = (t) => recs.every((r) => grade(t, r.f[t]) === "많은 편");
+  if (!allMany("spike") && !allMany("level")) return null;
+  const days = [...new Set(DATA.sites[0].forecast.map((f) => f.t.slice(0, 10)))];
+  const di = days.indexOf(cond.day);
+  let best = null;
+  for (const day of days.slice(Math.max(0, di - 1), di + 2)) {
+    for (const slot of Object.keys(SLOTS)) {
+      if (day === cond.day && slot === cond.slot) continue;
+      const rr = recommend({ ...cond, day, slot });
+      if (rr.length < 3) continue;
+      const sc = avgScore(rr);
+      if (!best || sc < best.score) best = { day, slot, score: sc };
+    }
+  }
+  return best && best.score < avgScore(recs) ? { ...best, now: avgScore(recs) } : { none: true };
+}
+
+function renderAlt(cond, recs) {
+  const box = $("#r-alt");
+  const a = altSlot(cond, recs);
+  if (!a) { box.hidden = true; box.innerHTML = ""; return; }
+  const dt = new Date(a.day ? a.day + "T00:00:00" : 0);
+  box.hidden = false;
+  box.innerHTML = a.none
+    ? `이 시간대는 전반적으로 소리가 많은 편이에요.`
+    : `이 시간대는 전반적으로 소리가 많은 편이에요. <button type="button" class="alt-btn" data-day="${a.day}" data-slot="${a.slot}">${DOW[dt.getDay()]}요일(${a.day.slice(5).replace("-", "/")}) ${SLOTS[a.slot]}가 더 조용해요 →</button>
+       <small>부담 점수 평균 ${a.now.toFixed(1)} → ${a.score.toFixed(1)}</small>`;
+  const btn = box.querySelector(".alt-btn");
+  if (btn) btn.addEventListener("click", () => {
+    $(`input[name="day"][value="${btn.dataset.day}"]`).checked = true;
+    $(`input[name="slot"][value="${btn.dataset.slot}"]`).checked = true;
+    render();
+  });
 }
 
 // 보호자용 등급: 테스트 기간 실측 분포의 1/3·2/3 분위값 기준(grade_cuts)
