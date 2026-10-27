@@ -127,17 +127,19 @@ function renderPerf() {
   const T = DATA.test, V = DATA.validation;
   const c = (v, best) => `<td class="num${best ? " better" : ""}">${v.toFixed(2)}</td>`;
   const sp = T.spike, lv = T.level;
+  const gh = "https://github.com/neogeo0701/calm-map-sdot/blob/main/";
   $("#perf").innerHTML = `
-    <p class="muted">시간순 3분할: 학습 ${DATA.split.train[0].slice(0, 10)}~${DATA.split.train[1].slice(5, 10)}, 검증 ${DATA.split.val[0].slice(5, 10)}~${DATA.split.val[1].slice(5, 10)}, 테스트 ${DATA.split.test[0].slice(5, 10)}~${DATA.split.test[1].slice(5, 10)}.
+    <p class="muted">시간순으로 학습·검증·테스트를 나눴습니다. 검증 ${DATA.split.val[0].slice(5, 10)}~${DATA.split.val[1].slice(5, 10)}, 테스트 ${DATA.split.test[0].slice(5, 10)}~${DATA.split.test[1].slice(5, 10)}.
     방법은 검증 구간으로만 골랐고, 테스트는 마지막에 한 번만 평가했습니다. 아래는 테스트 결과로, 화면과 같은 조건(데이터 마지막 시각에서 ${DATA.horizon_hours[0]}~${DATA.horizon_hours[1]}시간 뒤)의 평균 절대 오차(MAE, dB, 낮을수록 정확)입니다. 5개 센서, 실측 ${sp.n}시간.</p>
     <table><thead><tr><th>대상</th><th>AI</th><th>요일·시간<br>평균</th><th>직전 4주<br>평균</th><th>지난주<br>그대로</th></tr></thead>
     <tbody>
-    <tr><td>돌발 소음 지수<br><small>화면: AI</small></td>${c(sp.ai_try1, true)}${c(sp.baseline)}${c(sp.ref_recent4w_mean)}${c(sp.ref_last_week_naive)}</tr>
-    <tr><td>소음 수준<br><small>화면: 지난주 그대로</small></td>${c(lv.ai_try2)}${c(lv.baseline)}${c(lv.ref_recent4w_mean)}${c(lv.ref_last_week_naive, true)}</tr>
+    <tr><td>돌발 소음 지수<br><small>화면: AI</small></td>${c(sp.ai, true)}${c(sp.baseline)}${c(sp.ref_recent4w_mean)}${c(sp.ref_last_week_naive)}</tr>
+    <tr><td>소음 수준<br><small>화면: 지난주 그대로</small></td>${c(lv.ai)}${c(lv.baseline)}${c(lv.ref_recent4w_mean)}${c(lv.ref_last_week_naive, true)}</tr>
     </tbody></table>
-    <p class="muted"><b>AI의 역할은 돌발 소음 지수 예측입니다.</b> 돌발 지수는 AI가 네 방법 중 오차가 가장 작았습니다(요일·시간 평균보다 ${(100 * (sp.baseline - sp.ai_try1) / sp.baseline).toFixed(1)}% 작음).
-    소음 수준은 AI가 "지난주 그대로"를 넘지 못해(검증 ${V.level.ai_try2.toFixed(2)} vs ${V.level.ref_last_week_naive.toFixed(2)}dB) 화면에는 지난주 같은 요일·시각 실측값을 그대로 씁니다.
-    결측 시간은 보간하지 않고 평가에서 뺐습니다. 자세한 수치: <a href="https://github.com/neogeo0701/calm-map-sdot/blob/main/model/metrics.json">model/metrics.json</a></p>`;
+    <p class="muted"><b>AI의 역할은 돌발 소음 지수 예측입니다.</b> 돌발 지수 AI는 ${DATA.spike_history_start.slice(0, 7)}부터 약 34개월 실측으로 학습했고, 월·주차·전년 같은 시기 값 같은 계절 정보도 씁니다.
+    네 방법 중 오차가 가장 작지만, 같은 긴 기간으로 만든 요일·시간 평균과의 차이는 ${(sp.baseline - sp.ai).toFixed(2)}dB로 거의 같습니다. "지난주 그대로"보다는 ${(100 * (sp.ref_last_week_naive - sp.ai) / sp.ref_last_week_naive).toFixed(1)}% 작습니다.
+    소음 수준은 AI가 "지난주 그대로"를 넘지 못해(검증 ${V.level.ai_try2.toFixed(2)} vs ${V.level.ref_last_week_naive.toFixed(2)}dB) 화면에는 지난주 같은 요일·시각 실측값을 그대로 씁니다(이 행의 비교는 2026-07-13부터의 자료 기준).
+    결측 시간은 보간하지 않고 평가에서 뺐습니다. 자세한 수치: <a href="${gh}model/attempts/long_history/test_metrics.json">돌발 지수</a> · <a href="${gh}model/metrics.json">소음 수준</a></p>`;
 }
 
 function renderMap() {

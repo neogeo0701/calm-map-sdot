@@ -14,3 +14,4 @@ review/
 __pycache__/
 *.pyc
 .env
+model/attempts/long_history/raw/

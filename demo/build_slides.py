@@ -14,6 +14,10 @@ m = json.load(open("model/metrics.json", encoding="utf-8"))
 T = {t: m["test"][t]["service_horizon_mae"] for t in ["level", "spike"]}
 V = {t: m["validation"][t]["service_horizon_mae"] for t in ["level", "spike"]}
 NT = m["test"]["spike"]["n"]
+# 돌발 소음 지수는 장기 이력 실험 결과로 교체(DECISIONS.md)
+LH = json.load(open("model/attempts/long_history/test_metrics.json", encoding="utf-8"))
+_s = LH["results"]["spike"]["service_horizon_mae"]
+T["spike"] = {"ai_try1": _s["ai_S1"], "baseline": _s["baseline"], "ref_recent4w_mean": _s["ref_recent4w_mean"], "ref_last_week_naive": _s["ref_last_week_naive"]}
 shutil.copy("model/feature_importance.png", "demo/feature_importance.png")
 
 # 영상용 넓은 그래프: 큰솔 어린이공원 센서 하나(테스트 기간 실측 vs 예측)
@@ -21,15 +25,15 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Malgun Gothic"
-tp = pd.read_csv("model/attempts/try1_test/test_predictions.csv", parse_dates=["measured_at"])
+tp = pd.read_csv("model/attempts/long_history/test_predictions.csv", parse_dates=["measured_at"]).rename(columns={"spike_ai_S1": "spike_ai_recursive"})
 q = tp[tp.serial == SERIAL].set_index("measured_at")
 q = q.loc["2026-10-05":"2026-10-18 23:00"]  # 마지막 2주만(영상에서 읽을 수 있게)
 fig, ax = plt.subplots(figsize=(14, 5.2))
 ax.plot(q.index, q.spike_actual, color="#222", lw=1.1, label="실측")
 ax.plot(q.index, q.spike_ai_recursive, color="#d9822b", lw=1.6, label="AI 예측(재귀)")
 ax.plot(q.index, q.spike_baseline, color="#7aa6c2", lw=1.1, ls="--", label="요일·시간 평균")
-bs = m["test"]["spike"]["by_sensor_service_horizon"][SERIAL]
-ax.set_title(f"큰솔 어린이공원 센서 돌발 소음 지수(최대-평균, dB) · 테스트 MAE  AI {bs['ai']:.2f} / 요일·시간 평균 {bs['baseline']:.2f}", fontsize=14, loc="left")
+bs = LH["results"]["spike"]["by_sensor"][SERIAL]
+ax.set_title(f"큰솔 어린이공원 센서 돌발 소음 지수(최대-평균, dB) · 테스트 MAE  AI {bs['ai_S1']:.2f} / 요일·시간 평균(2024~) {bs['baseline']:.2f}", fontsize=14, loc="left")
 ax.set_ylabel("dB"); ax.legend(loc="upper right", ncol=3, fontsize=11); ax.grid(alpha=.25)
 fig.tight_layout(); fig.savefig("demo/test_actual_vs_pred_spike.png", dpi=130)
 
@@ -82,15 +86,15 @@ img{{max-width:100%;max-height:470px;object-fit:contain;background:#fff;border:1
   <div class="grid">
     <div><p>돌발 소음 지수 — <b>AI 사용</b></p><div class="big">{T['spike']['ai_try1']:.2f} dB</div>
       <p>요일·시간 평균 {T['spike']['baseline']:.2f} · 직전 4주 {T['spike']['ref_recent4w_mean']:.2f} · 지난주 그대로 {T['spike']['ref_last_week_naive']:.2f} dB<br>
-      <b>네 방법 중 가장 작음</b> <span class="muted">(검증에서도 1위, 개선 폭은 0.1~0.35dB)</span></p></div>
+      <b>지난주 그대로·직전 4주보다 작고, 긴 기간(2024~) 요일·시간 평균과는 거의 같음</b> <span class="muted">(약 34개월 실측 + 계절 정보로 학습)</span></p></div>
     <div><p>소음 수준 — <b>AI 미사용</b></p><div class="big" style="color:#5b6168">{T['level']['ref_last_week_naive']:.2f} dB</div>
       <p>"지난주 그대로" {T['level']['ref_last_week_naive']:.2f} vs AI {T['level']['ai_try2']:.2f} dB<br>
       <b>AI가 단순 방법을 넘지 못함</b> → 화면은 지난주 같은 시각 실측값 사용</p></div>
   </div>
-  <p class="muted">시간순 3분할(학습 8.4주 · 검증 2.1주 · 테스트 3.5주). 방법은 검증으로만 고르고 테스트는 한 번만 평가 · 5개 센서 · 실측 {NT}시간</p>
+  <p class="muted">시간순 3분할(검증 2.1주 · 테스트 3.5주, 학습은 그 이전). 방법·교체 규칙은 테스트 전에 정하고 테스트는 한 번만 평가 · 5개 센서 · 실측 {NT}시간</p>
 </section>
 <section id="importance">
-  <h2>돌발 소음 지수 AI가 주로 본 것: 1주 전 주간 평균, 시간대, 1주 전 같은 시각</h2>
+  <h2>돌발 소음 지수 AI가 주로 본 것: 1주 전 같은 시각, 1주 전 주간 평균, 시간대 (계절 정보 약 12%)</h2>
   <img src="feature_importance.png">
 </section>
 <section id="effect">
