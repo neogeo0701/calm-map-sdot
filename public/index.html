@@ -59,8 +59,8 @@
     <ol id="recs" class="recs"></ol>
     <details class="how">
       <summary>순위는 이렇게 계산해요</summary>
-      <p>각 장소·시간마다 <b>부담 점수 = 소리 크기 가중치 × (예측 소음 수준 − 35dB) + 갑작스러운 소리 가중치 × 예측 돌발 소음 지수</b>를 계산하고, 점수가 낮은 순서로 고릅니다. 한 장소에서는 가장 낮은 시간 하나만 추천합니다.</p>
-      <p>가중치: 낮음 0.5 · 보통 1 · 높음 2. 35dB는 이 센서들이 기록한 가장 낮은 값(측정 하한)입니다. 예측값이 없는 시간은 후보에서 뺍니다.</p>
+      <p>각 장소·시간마다 <b>부담 점수 = 소리 크기 가중치 × (소음 수준 − 35dB) + 갑작스러운 소리 가중치 × 돌발 소음 지수</b>를 계산하고, 점수가 낮은 순서로 고릅니다. 한 장소에서는 가장 낮은 시간 하나만 추천합니다.</p>
+      <p>가중치: 낮음 0.5 · 보통 1 · 높음 2. 35dB는 이 센서들이 기록한 가장 낮은 값(측정 하한)입니다. 값이 없는 시간("정보 부족")은 후보에서 뺍니다. 돌발 소음 지수는 AI 예측값, 소음 수준은 AI가 단순 방법을 넘지 못해 지난주 같은 요일·시각 실측값입니다.</p>
       <p>코드: <a href="https://github.com/neogeo0701/calm-map-sdot/blob/main/public/app.js">public/app.js</a>의 <code>score()</code>, <code>recommend()</code></p>
     </details>
   </section>
@@ -72,7 +72,7 @@
   </section>
 
   <section class="panel" aria-labelledby="p-title">
-    <h2 id="p-title">4. 예측은 얼마나 맞았나</h2>
+    <h2 id="p-title">4. 예측은 얼마나 맞았나 (테스트 1회 평가)</h2>
     <div id="perf"></div>
   </section>
 

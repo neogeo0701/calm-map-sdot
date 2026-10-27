@@ -46,6 +46,18 @@ const fmtDay = (d) => {
 const fmtTime = (t) => `${fmtDay(t.slice(0, 10))} ${Number(t.slice(11, 13))}시`;
 const n1 = (v) => (v == null ? null : v.toFixed(1));
 
+// 소음 수준 값의 출처 날짜: 같은 요일이면서 마지막 실측 주(level_source_week) 안에 드는 날
+function sourceDay(day) {
+  const [a, b] = DATA.level_source_week;
+  const dt = new Date(day + "T00:00:00");
+  while (true) {
+    dt.setDate(dt.getDate() - 7);
+    const y = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    if (y <= b && y >= a) return y;
+    if (y < a) return y;
+  }
+}
+
 function buildDays() {
   const days = [...new Set(DATA.sites[0].forecast.map((f) => f.t.slice(0, 10)))];
   const sat = days.find((d) => new Date(d + "T00:00:00").getDay() === 6) || days[0];
@@ -73,7 +85,7 @@ function dayBars(site, cond, bestHour) {
       return `<span class="${cls}" style="height:${pct}%" title="${h}시 부담 점수 ${vals[i].toFixed(1)}"></span>`;
     })
     .join("");
-  return `<div class="dayline"><span class="k">${fmtDay(cond.day)} 하루 시간대별 부담 점수(예측, 낮을수록 무던함 · 진한 막대=고른 시간대, 테두리=추천 시각)</span>
+  return `<div class="dayline"><span class="k">${fmtDay(cond.day)} 하루 시간대별 부담 점수(낮을수록 무던함 · 진한 막대=고른 시간대, 테두리=추천 시각)</span>
     <div class="bars" aria-hidden="true">${bars}</div><div class="bars-x"><span>0시</span><span>6시</span><span>12시</span><span>18시</span></div></div>`;
 }
 
@@ -87,43 +99,45 @@ function render() {
     $("#recs").innerHTML = `<li class="rec"><span class="tag na">정보 부족</span> 고른 시간대에 예측값이 있는 장소가 없습니다.</li>`;
     return;
   }
+  const lwk = DATA.level_source_week.map((d) => d.slice(5).replace("-", "/")).join("~");
   $("#recs").innerHTML = recs
     .map((r, i) => {
       const s = r.site, f = r.f;
       const confL = s.confidence.level, confS = s.confidence.spike;
       return `<li class="rec">
         <div class="rec-head"><span class="rank">${i + 1}</span><span class="rec-title">${s.name}</span>
-          <span class="rec-time">${fmtTime(f.t)}</span><span class="tag pred">예측</span></div>
+          <span class="rec-time">${fmtTime(f.t)}</span></div>
         <div class="facts">
-          ${fact("pred", "예측 소음 수준", `${n1(f.level)} dB`, `모델 오차(MAE) ±${s.mae.level.ai.toFixed(1)} dB · 신뢰도 <span class="tag conf-${confL}">${confL}</span>`)}
-          ${fact("pred", "예측 돌발 소음 지수", `${n1(f.spike)} dB`, `모델 오차(MAE) ±${s.mae.spike.ai.toFixed(1)} dB · 신뢰도 <span class="tag conf-${confS}">${confS}</span>`)}
+          ${fact("pred", "돌발 소음 지수 <span class='tag pred'>AI 예측</span>", `${n1(f.spike)} dB`, `테스트 오차(MAE) ±${s.mae.spike.used.toFixed(1)} dB · 신뢰도 <span class="tag conf-${confS}">${confS}</span>`)}
+          ${fact("obs", "소음 수준 <span class='tag obs'>지난주 실측</span>", `${n1(f.level)} dB`, `${fmtDay(sourceDay(f.t.slice(0, 10)))} 같은 시각 실측 · 이 방식의 테스트 오차 ±${s.mae.level.used.toFixed(1)} dB · 신뢰도 <span class="tag conf-${confL}">${confL}</span>`)}
           ${fact("obs", "최근 실측 <span class='tag obs'>실측</span>", `평균 ${s.recent.level} · 최대 ${s.recent.max} dB`, `${fmtTime(s.recent.t)} 측정`)}
-          ${fact("obs", "최근 1주 평균 <span class='tag obs'>실측</span>", `${n1(s.recent_week.level)} dB · 돌발 ${n1(s.recent_week.spike)} dB`, `${DATA.data_period[1].slice(5, 10).replace("-", "/")}까지 7일`)}
+          ${fact("obs", "최근 1주 평균 <span class='tag obs'>실측</span>", `${n1(s.recent_week.level)} dB · 돌발 ${n1(s.recent_week.spike)} dB`, `${lwk} 7일`)}
           ${fact("", "센서 위치", `공원 경계에서 ${Math.round(s.dist_m)}m`, `${s.sensor_address} (${s.sensor_serial})`)}
           ${fact("", "부담 점수", r.score.toFixed(1), `= ${WEIGHT[cond.level]}×(${n1(f.level)}−35) + ${WEIGHT[cond.spike]}×${n1(f.spike)}`)}
         </div>
         ${dayBars(s, cond, r.hour)}
-        <p class="why">단순 요일·시간 평균으로는 같은 시각 ${f.level_baseline == null ? "<span class='tag na'>정보 부족</span>" : `${n1(f.level_baseline)} dB`}입니다.
-        이 장소의 테스트 오차는 AI ${s.mae.level.ai.toFixed(2)} dB, 단순 평균 ${s.mae.level.baseline.toFixed(2)} dB였습니다.</p>
+        <p class="why">돌발 소음 지수는 단순 요일·시간 평균으로는 같은 시각 ${f.spike_baseline == null ? "<span class='tag na'>정보 부족</span>" : `${n1(f.spike_baseline)} dB`}입니다.
+        이 장소의 돌발 지수 테스트 오차는 AI ${s.mae.spike.used.toFixed(2)} dB, 단순 평균 ${s.mae.spike.baseline.toFixed(2)} dB였습니다.</p>
       </li>`;
     })
     .join("");
 }
 
 function renderPerf() {
-  const m = DATA.model.service_mae;
-  const row = (k, label) => {
-    const x = m[k];
-    return `<tr><td>${label}</td><td class="num better">${x.ai_recursive_mae.toFixed(2)}</td><td class="num">${x.baseline_mae.toFixed(2)}</td>
-      <td class="num">${x.ref_last_week_naive_mae.toFixed(2)}</td><td class="num">${x.ai_improvement_pct.toFixed(1)}%</td></tr>`;
-  };
+  const T = DATA.test, V = DATA.validation;
+  const c = (v, best) => `<td class="num${best ? " better" : ""}">${v.toFixed(2)}</td>`;
+  const sp = T.spike, lv = T.level;
   $("#perf").innerHTML = `
-    <p class="muted">테스트 기간(${DATA.test_period[0].slice(0, 10)} ~ ${DATA.test_period[1].slice(0, 10)}) 5개 센서, 화면과 같은 조건(데이터 마지막 시각으로부터 ${DATA.horizon_hours[0]}~${DATA.horizon_hours[1]}시간 뒤 예측)의 평균 절대 오차(MAE, dB, 낮을수록 정확). 실측 ${m.level.n}시간 기준.</p>
-    <table><thead><tr><th>대상</th><th>AI</th><th>요일·시간<br>평균</th><th>지난주<br>그대로</th><th>평균 대비<br>개선</th></tr></thead>
-    <tbody>${row("level", "소음 수준")}${row("spike", "돌발 소음 지수")}</tbody></table>
-    <p class="muted">학습: ${DATA.train_period[0].slice(0, 10)} ~ ${DATA.train_period[1].slice(0, 10)} 실측(약 10.5주) · 테스트: 그 뒤 약 3.5주 · 결측 시간은 보간하지 않고 평가에서 뺐습니다.
-    7~8월 주간 평균 소음이 9월 이후보다 최대 15dB 높아 전체 기간 평균은 불리한 비교 대상이라 "지난주 그대로"도 함께 적었습니다.
-    소음 수준에서 AI와 "지난주 그대로"의 차이는 ${Math.abs(m.level.ref_last_week_naive_mae - m.level.ai_recursive_mae).toFixed(2)}dB로 작습니다. 자세한 수치: <a href="https://github.com/neogeo0701/calm-map-sdot/blob/main/model/metrics.json">model/metrics.json</a></p>`;
+    <p class="muted">시간순 3분할: 학습 ${DATA.split.train[0].slice(0, 10)}~${DATA.split.train[1].slice(5, 10)}, 검증 ${DATA.split.val[0].slice(5, 10)}~${DATA.split.val[1].slice(5, 10)}, 테스트 ${DATA.split.test[0].slice(5, 10)}~${DATA.split.test[1].slice(5, 10)}.
+    방법은 검증 구간으로만 골랐고, 테스트는 마지막에 한 번만 평가했습니다. 아래는 테스트 결과로, 화면과 같은 조건(데이터 마지막 시각에서 ${DATA.horizon_hours[0]}~${DATA.horizon_hours[1]}시간 뒤)의 평균 절대 오차(MAE, dB, 낮을수록 정확)입니다. 5개 센서, 실측 ${sp.n}시간.</p>
+    <table><thead><tr><th>대상</th><th>AI</th><th>요일·시간<br>평균</th><th>직전 4주<br>평균</th><th>지난주<br>그대로</th></tr></thead>
+    <tbody>
+    <tr><td>돌발 소음 지수<br><small>화면: AI</small></td>${c(sp.ai_try1, true)}${c(sp.baseline)}${c(sp.ref_recent4w_mean)}${c(sp.ref_last_week_naive)}</tr>
+    <tr><td>소음 수준<br><small>화면: 지난주 그대로</small></td>${c(lv.ai_try2)}${c(lv.baseline)}${c(lv.ref_recent4w_mean)}${c(lv.ref_last_week_naive, true)}</tr>
+    </tbody></table>
+    <p class="muted"><b>AI의 역할은 돌발 소음 지수 예측입니다.</b> 돌발 지수는 AI가 네 방법 중 오차가 가장 작았습니다(요일·시간 평균보다 ${(100 * (sp.baseline - sp.ai_try1) / sp.baseline).toFixed(1)}% 작음).
+    소음 수준은 AI가 "지난주 그대로"를 넘지 못해(검증 ${V.level.ai_try2.toFixed(2)} vs ${V.level.ref_last_week_naive.toFixed(2)}dB) 화면에는 지난주 같은 요일·시각 실측값을 그대로 씁니다.
+    결측 시간은 보간하지 않고 평가에서 뺐습니다. 자세한 수치: <a href="https://github.com/neogeo0701/calm-map-sdot/blob/main/model/metrics.json">model/metrics.json</a></p>`;
 }
 
 function renderMap() {

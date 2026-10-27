@@ -11,7 +11,9 @@ cols = ["시리얼", "측정시간", "자치구", "행정동", "온도 평균(�
 df = pd.read_csv(RAW, encoding="cp949", usecols=cols, dtype=str, index_col=False)
 rows = df[(df["시리얼"] == SERIAL) & df["측정시간"].str.startswith("2026-10-18_1")][cols].head(9)
 m = json.load(open("model/metrics.json", encoding="utf-8"))
-sv = {t: m["targets"][t]["by_horizon_recursive"][f"service_{m['service_horizon_hours'][0]}-{m['service_horizon_hours'][1]}h"] for t in ["level", "spike"]}
+T = {t: m["test"][t]["service_horizon_mae"] for t in ["level", "spike"]}
+V = {t: m["validation"][t]["service_horizon_mae"] for t in ["level", "spike"]}
+NT = m["test"]["spike"]["n"]
 shutil.copy("model/feature_importance.png", "demo/feature_importance.png")
 
 # 영상용 넓은 그래프: 큰솔 어린이공원 센서 하나(테스트 기간 실측 vs 예측)
@@ -19,16 +21,17 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Malgun Gothic"
-tp = pd.read_csv("model/attempts/try1/test_predictions.csv", parse_dates=["measured_at"])
-q = tp[tp.serial == SERIAL]
+tp = pd.read_csv("model/attempts/try1_test/test_predictions.csv", parse_dates=["measured_at"])
+q = tp[tp.serial == SERIAL].set_index("measured_at")
+q = q.loc["2026-10-05":"2026-10-18 23:00"]  # 마지막 2주만(영상에서 읽을 수 있게)
 fig, ax = plt.subplots(figsize=(14, 5.2))
-ax.plot(q.measured_at, q.level_actual, color="#222", lw=1.1, label="실측")
-ax.plot(q.measured_at, q.level_ai_recursive, color="#d9822b", lw=1.4, label="AI 예측(재귀)")
-ax.plot(q.measured_at, q.level_baseline, color="#7aa6c2", lw=1.1, ls="--", label="요일·시간 평균")
-bs = m["targets"]["level"]["by_sensor"][SERIAL]
-ax.set_title(f"큰솔 어린이공원 센서 소음 수준(dB) · MAE  AI {bs['ai_recursive_mae']:.2f} / 요일·시간 평균 {bs['baseline_mae']:.2f}", fontsize=14, loc="left")
+ax.plot(q.index, q.spike_actual, color="#222", lw=1.1, label="실측")
+ax.plot(q.index, q.spike_ai_recursive, color="#d9822b", lw=1.6, label="AI 예측(재귀)")
+ax.plot(q.index, q.spike_baseline, color="#7aa6c2", lw=1.1, ls="--", label="요일·시간 평균")
+bs = m["test"]["spike"]["by_sensor_service_horizon"][SERIAL]
+ax.set_title(f"큰솔 어린이공원 센서 돌발 소음 지수(최대-평균, dB) · 테스트 MAE  AI {bs['ai']:.2f} / 요일·시간 평균 {bs['baseline']:.2f}", fontsize=14, loc="left")
 ax.set_ylabel("dB"); ax.legend(loc="upper right", ncol=3, fontsize=11); ax.grid(alpha=.25)
-fig.tight_layout(); fig.savefig("demo/test_actual_vs_pred_level.png", dpi=130)
+fig.tight_layout(); fig.savefig("demo/test_actual_vs_pred_spike.png", dpi=130)
 
 table = "<table><tr>" + "".join(f"<th>{html.escape(c)}</th>" for c in cols) + "</tr>" + "".join(
     "<tr>" + "".join(f"<td>{html.escape(str(v))}</td>" for v in r) + "</tr>" for r in rows.values) + "</table>"
@@ -57,8 +60,9 @@ img{{max-width:100%;max-height:470px;object-fit:contain;background:#fff;border:1
   기존 해외 서비스: PIUMA(당사자·보호자 제보), HushMap(이용자 제보, 부족분은 AI 추정), KultureCity(시설 인증)</p>
 </section>
 <section id="idea">
-  <h1>무던한 지도 — 공공 센서로 "덜 시끄러운 시간"을 예측</h1>
-  <p>서울시 S-DoT 센서가 1시간마다 잰 <b>실측 소음</b>을 AI(LightGBM)가 학습해<br>송파구 공원·놀이터 5곳의 다음 주 시간별 소음을 예측하고,<br>보호자가 고른 조건에 맞는 방문 시간 3개를 근거와 함께 추천합니다.</p>
+  <h1>무던한 지도 — "갑작스러운 소리"가 적은 시간을 예측</h1>
+  <p>평균 소음만으로는 갑작스러운 소리를 알 수 없습니다. 시간 최대 − 평균을 <b>돌발 소음 지수</b>로 정하고,<br>AI(LightGBM)가 송파구 공원·놀이터 5곳의 다음 주 시간별 돌발 지수를 예측합니다.<br>
+  AI가 단순 방법보다 나은지 학습·검증·테스트로 나눠 확인하고, 보호자 조건에 맞는 방문 시간 3개를 근거와 함께 추천합니다.</p>
   <p class="muted">2026 AI 라이프 아이디어 챌린지 수상 후보작 「무던한 지도(Calm Map)」 기반 구현</p>
 </section>
 <section id="raw">
@@ -69,32 +73,33 @@ img{{max-width:100%;max-height:470px;object-fit:contain;background:#fff;border:1
   소음 수준 = 시간 평균 · 돌발 소음 지수 = 시간 최대 − 시간 평균 · 결측은 보간하지 않음</p>
 </section>
 <section id="test">
-  <span class="tag">예측</span>
-  <h2>테스트 3.5주: 실측(검정) vs AI 예측(주황) vs 요일·시간 평균(파랑 점선)</h2>
-  <img src="test_actual_vs_pred_level.png">
+  <span class="tag">AI 예측</span>
+  <h2>테스트 마지막 2주: 돌발 소음 지수 실측(검정) vs AI(주황) vs 요일·시간 평균(파랑 점선)</h2>
+  <img src="test_actual_vs_pred_spike.png">
 </section>
 <section id="mae">
-  <h2>화면과 같은 조건(9~16일 앞 예측)의 오차 MAE</h2>
+  <h2>테스트(마지막 1회 평가) · 화면과 같은 9~16일 앞 예측의 오차 MAE</h2>
   <div class="grid">
-    <div><p>소음 수준</p><div class="big">{sv['level']['ai_recursive_mae']:.2f} dB</div>
-      <p>요일·시간 평균 {sv['level']['baseline_mae']:.2f} dB → <b>{sv['level']['ai_improvement_pct']:.1f}% 감소</b><br>
-      <span class="muted">단, "지난주 그대로"({sv['level']['ref_last_week_naive_mae']:.2f} dB)와는 거의 같음</span></p></div>
-    <div><p>돌발 소음 지수</p><div class="big">{sv['spike']['ai_recursive_mae']:.2f} dB</div>
-      <p>요일·시간 평균 {sv['spike']['baseline_mae']:.2f} dB → <b>{sv['spike']['ai_improvement_pct']:.1f}% 감소</b><br>
-      <span class="muted">직전 4주 평균 {sv['spike']['ref_recent4w_mean_mae']:.2f}, 지난주 그대로 {sv['spike']['ref_last_week_naive_mae']:.2f} dB보다도 낮음</span></p></div>
+    <div><p>돌발 소음 지수 — <b>AI 사용</b></p><div class="big">{T['spike']['ai_try1']:.2f} dB</div>
+      <p>요일·시간 평균 {T['spike']['baseline']:.2f} · 직전 4주 {T['spike']['ref_recent4w_mean']:.2f} · 지난주 그대로 {T['spike']['ref_last_week_naive']:.2f} dB<br>
+      <b>네 방법 중 가장 작음</b> <span class="muted">(검증에서도 1위, 개선 폭은 0.1~0.35dB)</span></p></div>
+    <div><p>소음 수준 — <b>AI 미사용</b></p><div class="big" style="color:#5b6168">{T['level']['ref_last_week_naive']:.2f} dB</div>
+      <p>"지난주 그대로" {T['level']['ref_last_week_naive']:.2f} vs AI {T['level']['ai_try2']:.2f} dB<br>
+      <b>AI가 단순 방법을 넘지 못함</b> → 화면은 지난주 같은 시각 실측값 사용</p></div>
   </div>
-  <p class="muted">5개 센서 · 실측 {sv['level']['n']}시간 · 시간순 분리(앞 75% 학습, 뒤 25% 테스트)</p>
+  <p class="muted">시간순 3분할(학습 8.4주 · 검증 2.1주 · 테스트 3.5주). 방법은 검증으로만 고르고 테스트는 한 번만 평가 · 5개 센서 · 실측 {NT}시간</p>
 </section>
 <section id="importance">
-  <h2>AI가 주로 본 것: 1주 전 같은 시각, 기온, 시간대</h2>
+  <h2>돌발 소음 지수 AI가 주로 본 것: 1주 전 주간 평균, 시간대, 1주 전 같은 시각</h2>
   <img src="feature_importance.png">
 </section>
 <section id="effect">
   <h1>기대효과와 다음 단계</h1>
   <ul>
-    <li>보호자가 <b>시간</b>을 골라 외출 실패 가능성을 줄이는 근거를 얻음 — 장소에 낙인을 찍지 않음</li>
+    <li>보호자가 <b>시간</b>을 골라 갑작스러운 소리로 인한 외출 실패 가능성을 줄이는 근거를 얻음 — 장소에 낙인을 찍지 않음</li>
+    <li>AI가 이긴 부분만 AI로, 진 부분은 단순 방법으로 — 검증 결과를 그대로 공개</li>
     <li>서울 S-DoT 센서 1,100여 대 · 공원 경계 100m 이내 이름 있는 공원·놀이터 306곳으로 같은 방법을 넓힐 수 있음</li>
-    <li>다음 단계: Open API로 최신 데이터 반영(예측 거리 단축), 보호자 실제 방문 피드백으로 검증</li>
+    <li>다음 단계: Open API로 최신 데이터 반영(예측 거리 단축), 보호자 실제 방문 피드백으로 검증, 소음 수준 AI 개선</li>
   </ul>
   <p class="muted">이 결과는 S-DoT 데이터를 활용한 개인 연구 결과이며 서울시의 공식 입장이 아닙니다. 진단이나 보장이 아닙니다.</p>
 </section>

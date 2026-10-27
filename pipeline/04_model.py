@@ -2,11 +2,14 @@
 
 평가
   E1  1시간 앞 예측: 직전 1·24·168시간 실측을 그대로 넣는다(핸드오프 명세).
-  E2  재귀 다중 시점 예측: 학습 끝 시각부터 테스트 끝까지 예측값을 다시 입력으로 넣어 이어서 예측한다.
-      서비스는 데이터 마지막 시각에서 217~384시간 뒤를 보여주므로 이 구간 MAE로 서비스 모델을 고른다.
+  E2  재귀 다중 시점 예측: 평가 구간 시작부터 예측값을 다시 입력으로 넣어 이어서 예측한다.
+      서비스는 데이터 마지막 시각에서 217~384시간 뒤를 보여주므로 이 거리 구간 MAE를 서비스 성능으로 본다.
+시간순 3분할: 학습(앞 60%) / 검증(다음 15%) / 테스트(뒤 25%).
+  phase=val : 학습 구간으로 학습 → 검증 구간 평가. 개선안 선택은 이 결과로만 한다.
+  phase=test: 학습+검증 구간으로 다시 학습 → 테스트 구간 평가. 채택안에 대해 1회만 실행한다.
 결측은 보간하지 않는다. 실측이 없는 시간은 학습·평가에서 빠지고, 입력 지연값이 없으면 NaN 그대로 LightGBM에 들어간다.
 
-사용법: python pipeline/04_model.py <attempt>   (attempt: base | try1 | try2)
+사용법: python pipeline/04_model.py <attempt> <phase>   (attempt: base | try1 | try2, phase: val | test)
 """
 import json
 import os
@@ -18,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 ATTEMPT = sys.argv[1] if len(sys.argv) > 1 else "base"
+PHASE = sys.argv[2] if len(sys.argv) > 2 else "val"
 BASE_PARAMS = dict(n_estimators=400, learning_rate=0.03, num_leaves=31, min_child_samples=20,
                    subsample=0.8, subsample_freq=1, colsample_bytree=0.8, verbose=-1, random_state=0)
 CONFIGS = {
@@ -31,6 +35,8 @@ CONFIGS = {
 cfg = CONFIGS[ATTEMPT]
 SERVICE_START, SERVICE_END = pd.Timestamp("2026-10-28 00:00"), pd.Timestamp("2026-11-03 23:00")
 TARGETS = {"level": "소음 수준(시간 평균, dB)", "spike": "돌발 소음 지수(시간 최대 - 시간 평균, dB)"}
+if len(sys.argv) > 3:  # 대상 하나만 평가(테스트 1회 평가용)
+    TARGETS = {k: v for k, v in TARGETS.items() if k == sys.argv[3]}
 KR_HOL = holidays.KR(years=[2026])
 
 sites = json.load(open("data/processed/selected_sites.json", encoding="utf-8"))
@@ -42,7 +48,10 @@ else:
     pool = sel + sorted(set(raw.loc[raw.district == cfg["train_pool"], "serial"]) - set(sel))
 raw = raw[raw.serial.isin(pool)]
 t0, t1 = raw.measured_at.min(), raw.measured_at.max()
-t_split = (t0 + (t1 - t0) * 0.75).floor("h")
+t_val = (t0 + (t1 - t0) * 0.60).floor("h")   # 검증 시작
+t_test = (t0 + (t1 - t0) * 0.75).floor("h")  # 테스트 시작
+# 평가 구간: [t_split, t_end]
+t_split, t_end = (t_val, t_test - pd.Timedelta(hours=1)) if PHASE == "val" else (t_test, t1)
 hours = pd.date_range(t0, SERVICE_END, freq="h")
 N, S = len(hours), len(pool)
 
@@ -170,16 +179,17 @@ def pct(b, a):
 if __name__ == "__main__":
     h_lo, h_hi = idx(SERVICE_START) - idx(t1), idx(SERVICE_END) - idx(t1)
     metrics = {
-        "attempt": ATTEMPT,
+        "attempt": ATTEMPT, "phase": PHASE,
+        "split": {"train": [str(t0), str(t_val - pd.Timedelta(hours=1))], "val": [str(t_val), str(t_test - pd.Timedelta(hours=1))], "test": [str(t_test), str(t1)]},
         "config": {"params": cfg["params"], "lags": list(cfg["lags"]), "train_pool": cfg["train_pool"], "features": FEATS},
         "data_period": [str(t0), str(t1)],
-        "train_period": [str(t0), str(t_split - pd.Timedelta(hours=1))],
-        "test_period": [str(t_split), str(t1)],
+        "fit_period": [str(t0), str(t_split - pd.Timedelta(hours=1))],
+        "eval_period": [str(t_split), str(t_end)],
         "service_period": [str(SERVICE_START), str(SERVICE_END)],
         "service_horizon_hours": [h_lo, h_hi],
         "sensors_train_pool": S, "sensors_eval": sel, "targets": {},
     }
-    in_test = ((d.measured_at >= t_split) & (d.measured_at <= t1) & d.serial.isin(sel)).to_numpy()
+    in_test = ((d.measured_at >= t_split) & (d.measured_at <= t_end) & d.serial.isin(sel)).to_numpy()
     horizon = ((d.measured_at - t_split) / pd.Timedelta(hours=1)).to_numpy() + 1
     test_out = d.loc[in_test, ["serial", "measured_at"]].copy()
     dw = weather_proxy(d, t_split)
@@ -206,7 +216,8 @@ if __name__ == "__main__":
         for name, (lo, hi) in buckets.items():
             bm = in_test & (horizon >= lo) & (horizon <= hi)
             b, a = mae(y[bm], base[bm]), mae(y[bm], e2[bm])
-            res["by_horizon_recursive"][name] = {"n": int((bm & ~np.isnan(y)).sum()), "baseline_mae": b,
+            hv = horizon[bm & ~np.isnan(y)]
+            res["by_horizon_recursive"][name] = {"n": int((bm & ~np.isnan(y)).sum()), "hours_covered": [int(hv.min()), int(hv.max())] if len(hv) else None, "baseline_mae": b,
                                                  "ai_recursive_mae": a, "ai_improvement_pct": pct(b, a),
                                                  "ref_recent4w_mean_mae": mae(y[bm], r4[bm]),
                                                  "ref_last_week_naive_mae": mae(y[bm], lw[bm])}
@@ -231,7 +242,7 @@ if __name__ == "__main__":
             print("   ", k, v)
         print("    service model:", res["service_model"])
 
-    out_dir = f"model/attempts/{ATTEMPT}"
+    out_dir = f"model/attempts/{ATTEMPT}_{PHASE}"
     os.makedirs(out_dir, exist_ok=True)
     json.dump(metrics, open(f"{out_dir}/metrics.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     test_out.to_csv(f"{out_dir}/test_predictions.csv", index=False, encoding="utf-8-sig")

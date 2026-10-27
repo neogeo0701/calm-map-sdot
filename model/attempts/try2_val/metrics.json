@@ -1,0 +1,346 @@
+{
+  "attempt": "try2",
+  "phase": "val",
+  "split": {
+    "train": [
+      "2026-07-13 00:00:00",
+      "2026-09-09 17:00:00"
+    ],
+    "val": [
+      "2026-09-09 18:00:00",
+      "2026-09-24 10:00:00"
+    ],
+    "test": [
+      "2026-09-24 11:00:00",
+      "2026-10-18 23:00:00"
+    ]
+  },
+  "config": {
+    "params": {
+      "n_estimators": 800,
+      "learning_rate": 0.02,
+      "num_leaves": 15,
+      "min_child_samples": 40,
+      "subsample": 0.8,
+      "subsample_freq": 1,
+      "colsample_bytree": 0.8,
+      "verbose": -1,
+      "random_state": 0
+    },
+    "lags": [
+      168,
+      336
+    ],
+    "train_pool": "Songpa-gu",
+    "features": {
+      "level": [
+        "dow",
+        "hour",
+        "weekend",
+        "holiday",
+        "sensor",
+        "temp",
+        "humid",
+        "level_lag168",
+        "level_lag336",
+        "level_roll168"
+      ],
+      "spike": [
+        "dow",
+        "hour",
+        "weekend",
+        "holiday",
+        "sensor",
+        "temp",
+        "humid",
+        "spike_lag168",
+        "spike_lag336",
+        "spike_roll168"
+      ]
+    }
+  },
+  "data_period": [
+    "2026-07-13 00:00:00",
+    "2026-10-18 23:00:00"
+  ],
+  "fit_period": [
+    "2026-07-13 00:00:00",
+    "2026-09-09 17:00:00"
+  ],
+  "eval_period": [
+    "2026-09-09 18:00:00",
+    "2026-09-24 10:00:00"
+  ],
+  "service_period": [
+    "2026-10-28 00:00:00",
+    "2026-11-03 23:00:00"
+  ],
+  "service_horizon_hours": [
+    217,
+    384
+  ],
+  "sensors_train_pool": 40,
+  "sensors_eval": [
+    "V02Q1940775",
+    "V02Q1940767",
+    "V02Q1940736",
+    "V02Q1940757",
+    "V02Q1940717"
+  ],
+  "targets": {
+    "level": {
+      "label": "소음 수준(시간 평균, dB)",
+      "n_test_hours": 1710,
+      "overall": {
+        "baseline_mae": 4.4865,
+        "ai_1h_mae": 1.3398,
+        "ai_recursive_mae": 1.7006,
+        "ref_recent4w_mean_mae": 3.3218,
+        "ref_last_week_naive_mae": 1.5327,
+        "ai_1h_improvement_pct": 70.14,
+        "ai_recursive_improvement_pct": 62.1
+      },
+      "by_horizon_recursive": {
+        "1-24h": {
+          "n": 120,
+          "hours_covered": [
+            1,
+            24
+          ],
+          "baseline_mae": 4.2094,
+          "ai_recursive_mae": 2.3903,
+          "ai_improvement_pct": 43.22,
+          "ref_recent4w_mean_mae": 3.1083,
+          "ref_last_week_naive_mae": 1.8583
+        },
+        "25-168h": {
+          "n": 720,
+          "hours_covered": [
+            25,
+            168
+          ],
+          "baseline_mae": 4.4704,
+          "ai_recursive_mae": 1.4045,
+          "ai_improvement_pct": 68.58,
+          "ref_recent4w_mean_mae": 3.2583,
+          "ref_last_week_naive_mae": 1.4056
+        },
+        "169-216h": {
+          "n": 240,
+          "hours_covered": [
+            169,
+            216
+          ],
+          "baseline_mae": 4.4177,
+          "ai_recursive_mae": 2.4684,
+          "ai_improvement_pct": 44.12,
+          "ref_recent4w_mean_mae": 3.2802,
+          "ref_last_week_naive_mae": 2.0
+        },
+        "service_217-384h": {
+          "n": 630,
+          "hours_covered": [
+            217,
+            342
+          ],
+          "baseline_mae": 4.5839,
+          "ai_recursive_mae": 1.6151,
+          "ai_improvement_pct": 64.77,
+          "ref_recent4w_mean_mae": 3.4508,
+          "ref_last_week_naive_mae": 1.4381
+        },
+        "385h+": {
+          "n": 0,
+          "hours_covered": null,
+          "baseline_mae": null,
+          "ai_recursive_mae": null,
+          "ai_improvement_pct": null,
+          "ref_recent4w_mean_mae": null,
+          "ref_last_week_naive_mae": null
+        }
+      },
+      "by_sensor": {
+        "V02Q1940775": {
+          "baseline_mae": 0.7982,
+          "ai_1h_mae": 1.066,
+          "ai_recursive_mae": 1.1153,
+          "service_horizon_baseline_mae": 0.75,
+          "service_horizon_ai_mae": 1.1695,
+          "service_horizon_ref_recent4w_mae": 0.9405
+        },
+        "V02Q1940767": {
+          "baseline_mae": 2.8188,
+          "ai_1h_mae": 1.2105,
+          "ai_recursive_mae": 1.4035,
+          "service_horizon_baseline_mae": 3.0827,
+          "service_horizon_ai_mae": 1.4546,
+          "service_horizon_ref_recent4w_mae": 2.9821
+        },
+        "V02Q1940736": {
+          "baseline_mae": 8.0528,
+          "ai_1h_mae": 1.7086,
+          "ai_recursive_mae": 2.4988,
+          "service_horizon_baseline_mae": 8.1098,
+          "service_horizon_ai_mae": 2.2934,
+          "service_horizon_ref_recent4w_mae": 5.4762
+        },
+        "V02Q1940757": {
+          "baseline_mae": 4.7539,
+          "ai_1h_mae": 1.3413,
+          "ai_recursive_mae": 1.7234,
+          "service_horizon_baseline_mae": 5.0552,
+          "service_horizon_ai_mae": 1.6722,
+          "service_horizon_ref_recent4w_mae": 4.1091
+        },
+        "V02Q1940717": {
+          "baseline_mae": 6.0088,
+          "ai_1h_mae": 1.3728,
+          "ai_recursive_mae": 1.762,
+          "service_horizon_baseline_mae": 5.9216,
+          "service_horizon_ai_mae": 1.4859,
+          "service_horizon_ref_recent4w_mae": 3.746
+        }
+      },
+      "service_model": "ai",
+      "feature_importance_gain": {
+        "level_lag168": 28148954.0,
+        "sensor": 8530216.6,
+        "level_roll168": 3958324.9,
+        "hour": 3264649.3,
+        "level_lag336": 2778727.6,
+        "temp": 1910909.9,
+        "humid": 1308788.2,
+        "dow": 169444.7,
+        "holiday": 29531.9,
+        "weekend": 5516.5
+      }
+    },
+    "spike": {
+      "label": "돌발 소음 지수(시간 최대 - 시간 평균, dB)",
+      "n_test_hours": 1710,
+      "overall": {
+        "baseline_mae": 1.8144,
+        "ai_1h_mae": 1.387,
+        "ai_recursive_mae": 1.3916,
+        "ref_recent4w_mean_mae": 1.6102,
+        "ref_last_week_naive_mae": 1.6468,
+        "ai_1h_improvement_pct": 23.56,
+        "ai_recursive_improvement_pct": 23.3
+      },
+      "by_horizon_recursive": {
+        "1-24h": {
+          "n": 120,
+          "hours_covered": [
+            1,
+            24
+          ],
+          "baseline_mae": 1.8687,
+          "ai_recursive_mae": 1.5077,
+          "ai_improvement_pct": 19.32,
+          "ref_recent4w_mean_mae": 1.6667,
+          "ref_last_week_naive_mae": 1.575
+        },
+        "25-168h": {
+          "n": 720,
+          "hours_covered": [
+            25,
+            168
+          ],
+          "baseline_mae": 1.752,
+          "ai_recursive_mae": 1.3315,
+          "ai_improvement_pct": 24.0,
+          "ref_recent4w_mean_mae": 1.555,
+          "ref_last_week_naive_mae": 1.6056
+        },
+        "169-216h": {
+          "n": 240,
+          "hours_covered": [
+            169,
+            216
+          ],
+          "baseline_mae": 1.7771,
+          "ai_recursive_mae": 1.4802,
+          "ai_improvement_pct": 16.71,
+          "ref_recent4w_mean_mae": 1.675,
+          "ref_last_week_naive_mae": 1.8042
+        },
+        "service_217-384h": {
+          "n": 630,
+          "hours_covered": [
+            217,
+            342
+          ],
+          "baseline_mae": 1.8897,
+          "ai_recursive_mae": 1.4043,
+          "ai_improvement_pct": 25.69,
+          "ref_recent4w_mean_mae": 1.6378,
+          "ref_last_week_naive_mae": 1.6476
+        },
+        "385h+": {
+          "n": 0,
+          "hours_covered": null,
+          "baseline_mae": null,
+          "ai_recursive_mae": null,
+          "ai_improvement_pct": null,
+          "ref_recent4w_mean_mae": null,
+          "ref_last_week_naive_mae": null
+        }
+      },
+      "by_sensor": {
+        "V02Q1940775": {
+          "baseline_mae": 0.8897,
+          "ai_1h_mae": 0.9455,
+          "ai_recursive_mae": 0.9323,
+          "service_horizon_baseline_mae": 0.8282,
+          "service_horizon_ai_mae": 0.8478,
+          "service_horizon_ref_recent4w_mae": 0.8591
+        },
+        "V02Q1940767": {
+          "baseline_mae": 1.1941,
+          "ai_1h_mae": 1.027,
+          "ai_recursive_mae": 1.0347,
+          "service_horizon_baseline_mae": 1.286,
+          "service_horizon_ai_mae": 1.0879,
+          "service_horizon_ref_recent4w_mae": 1.2123
+        },
+        "V02Q1940736": {
+          "baseline_mae": 2.6105,
+          "ai_1h_mae": 1.4142,
+          "ai_recursive_mae": 1.4148,
+          "service_horizon_baseline_mae": 2.7719,
+          "service_horizon_ai_mae": 1.449,
+          "service_horizon_ref_recent4w_mae": 1.9742
+        },
+        "V02Q1940757": {
+          "baseline_mae": 2.084,
+          "ai_1h_mae": 1.6342,
+          "ai_recursive_mae": 1.6482,
+          "service_horizon_baseline_mae": 2.2415,
+          "service_horizon_ai_mae": 1.7327,
+          "service_horizon_ref_recent4w_mae": 2.1468
+        },
+        "V02Q1940717": {
+          "baseline_mae": 2.2938,
+          "ai_1h_mae": 1.9139,
+          "ai_recursive_mae": 1.928,
+          "service_horizon_baseline_mae": 2.3207,
+          "service_horizon_ai_mae": 1.9043,
+          "service_horizon_ref_recent4w_mae": 1.9967
+        }
+      },
+      "service_model": "ai",
+      "feature_importance_gain": {
+        "sensor": 1425512.9,
+        "spike_lag168": 572826.8,
+        "spike_roll168": 396488.7,
+        "spike_lag336": 286010.8,
+        "hour": 271347.1,
+        "temp": 172261.6,
+        "humid": 124260.5,
+        "dow": 27618.9,
+        "holiday": 7475.6,
+        "weekend": 804.9
+      }
+    }
+  }
+}
