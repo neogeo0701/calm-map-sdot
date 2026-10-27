@@ -82,6 +82,7 @@ function render() {
   const recs = recommend(cond);
   const lv = { low: "낮음", mid: "보통", high: "높음" };
   $("#r-sub").textContent = `${fmtDay(cond.day)} ${cond.slot.replace("-", "~")}시 · 소리 크기 민감도 ${lv[cond.level]} · 갑작스러운 소리 민감도 ${lv[cond.spike]}`;
+  $("#r-sum").innerHTML = recs.map((r, i) => `<span><b>${i + 1}</b> ${r.site.name} ${r.hour}시</span>`).join("");
   if (!recs.length) {
     $("#recs").innerHTML = `<li class="rec"><span class="tag na">정보 부족</span> 고른 시간대에 예측값이 있는 장소가 없습니다.</li>`;
     return;

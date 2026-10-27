@@ -98,3 +98,6 @@ td.num { font-variant-numeric: tabular-nums; }
 .facts { grid-template-columns: 1fr 1fr; }
 html.big .facts { grid-template-columns: 1fr; }
 .seg.slots { grid-template-columns: 1fr 1fr; }
+.rsum { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 12px; font-size: 0.95em; }
+.rsum span { background: var(--accent-soft); border-radius: 8px; padding: 4px 10px; }
+.rsum b { color: var(--accent); margin-right: 2px; }
