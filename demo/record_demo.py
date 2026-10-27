@@ -68,7 +68,10 @@ class Rec:
         loc.evaluate("e => { e.style.outline = '4px solid #c4651c'; e.style.outlineOffset = '2px'; }")
         self.snap(pause)
         loc.click()
-        loc.evaluate("e => { e.style.outline = ''; }")
+        try:  # 클릭으로 화면이 다시 그려져 요소가 사라질 수 있음
+            loc.evaluate("e => { e.style.outline = ''; }", timeout=1000)
+        except Exception:
+            pass
         self.page.wait_for_timeout(150)
         self.snap(pause)
 
@@ -137,7 +140,7 @@ with sync_playwright() as p:
           lambda: (r.click("#recs li:first-child details summary", 0.5), r.scroll_to("#recs li:first-child", 0.8, 110)))
     r.sub("3곳 모두 '갑자기 커지는 소리 많은 편'이라 목록 위에 더 조용한 시간대를 안내합니다", 7,
           lambda: r.scroll_to("#r-alt", 1.2, 110))
-    r.sub("시간대 대안 추천: 같은 날·앞뒤 하루 중 부담 점수가 가장 낮은 '일요일 오전 9~12시'", 6)
+    r.sub("시간대 대안 추천: 같은 날·앞뒤 하루 중 부담 점수가 가장 낮은 '일요일(11/1) 오전 9~12시'", 6)
     r.sub("누르면 그 조건으로 바로 바뀝니다. 삼전공원은 갑자기 커지는 소리 '보통'", 8,
           lambda: (r.click(".alt-btn"), r.scroll_to("#r-sub", 1.0, 110), r.hold(1.5), r.scroll_to("#recs li:nth-child(3)", 1.2, 110)))
     r.sub("시연 1: 다시 토요일 오후, 갑작스러운 소리에 더 예민한 아이라면", 5,
