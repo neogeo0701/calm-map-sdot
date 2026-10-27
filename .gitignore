@@ -1,0 +1,16 @@
+# 원본·대용량
+data/raw/
+data/processed/*.pkl
+scratch/
+# 개인정보·대회 양식·제출물(공개 저장소에 올리지 않음)
+ai-life-calm-map-handoff.md
+USER_TODO.md
+docs_src/
+submit/
+report/
+demo/*.mp4
+demo/frames/
+review/
+__pycache__/
+*.pyc
+.env

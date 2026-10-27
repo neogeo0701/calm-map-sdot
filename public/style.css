@@ -1,0 +1,100 @@
+:root {
+  --bg: #f6f5f1;
+  --card: #ffffff;
+  --ink: #1f2328;
+  --muted: #5b6168;
+  --line: #dcd9d1;
+  --accent: #2f6f5e;
+  --accent-soft: #e3efe9;
+  --obs: #1f2328;       /* 실측 */
+  --pred: #c4651c;      /* 예측 */
+  --pred-soft: #fbeee3;
+  --na: #8a8f96;        /* 정보 부족 */
+  --fs: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15181b; --card: #1e2226; --ink: #e8e6e1; --muted: #a3a8ae; --line: #343a40;
+    --accent: #7cc4ad; --accent-soft: #23352f; --obs: #e8e6e1; --pred: #f0a35e; --pred-soft: #3a2a1c; --na: #8a8f96;
+  }
+}
+html.big { --fs: 20px; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--fs)/1.6 "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+a { color: var(--accent); }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.top { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 0; position: sticky; top: 0; z-index: 1000; }
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-size: 1.35em; margin: 0; letter-spacing: -0.01em; }
+h1 .en { font-size: 0.6em; color: var(--muted); font-weight: 500; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 0.85em; }
+h2 { font-size: 1.1em; margin: 0 0 12px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; margin: 16px 0; }
+.muted { color: var(--muted); font-size: 0.9em; }
+.toggle { font: inherit; font-size: 0.9em; padding: 8px 14px; border-radius: 999px; border: 2px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; white-space: nowrap; }
+.toggle[aria-pressed="true"] { background: var(--accent); color: var(--card); }
+
+fieldset { border: 0; padding: 0; margin: 0 0 16px; }
+legend { font-weight: 700; margin-bottom: 6px; }
+.hint { font-weight: 400; color: var(--muted); font-size: 0.85em; margin-left: 4px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg.wrapline { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); margin-bottom: 6px; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; }
+.seg label { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 46px; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 0.95em; }
+.seg label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.seg label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.recs { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.rec { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; }
+.rec-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.rank { font-weight: 800; color: var(--accent); font-size: 1.2em; }
+.rec-title { font-size: 1.15em; font-weight: 800; }
+.rec-time { font-weight: 700; }
+.tag { display: inline-block; font-size: 0.75em; font-weight: 700; padding: 1px 8px; border-radius: 999px; vertical-align: middle; }
+.tag.pred { background: var(--pred-soft); color: var(--pred); border: 1px solid var(--pred); }
+.tag.obs { background: transparent; color: var(--obs); border: 1px solid var(--obs); }
+.tag.na { background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(138,143,150,.25) 4px 8px); color: var(--na); border: 1px dashed var(--na); }
+.tag.conf-높음 { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+.tag.conf-보통 { background: transparent; color: var(--muted); border: 1px solid var(--muted); }
+.tag.conf-낮음 { background: transparent; color: var(--pred); border: 1px dashed var(--pred); }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 12px 0 6px; }
+.fact { border-left: 3px solid var(--line); padding-left: 8px; }
+.fact.pred { border-left-color: var(--pred); }
+.fact.obs { border-left-color: var(--obs); }
+.fact.na { border-left: 3px dashed var(--na); }
+.fact .k { font-size: 0.78em; color: var(--muted); display: block; }
+.fact .v { font-weight: 700; }
+.fact .s { font-size: 0.8em; color: var(--muted); display: block; }
+.dayline { margin-top: 10px; }
+.dayline .k { font-size: 0.78em; color: var(--muted); }
+.bars { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; align-items: end; height: 56px; margin-top: 4px; }
+.bars span { background: var(--pred); opacity: 0.35; border-radius: 2px 2px 0 0; }
+.bars span.in { opacity: 0.75; }
+.bars span.best { opacity: 1; outline: 2px solid var(--ink); }
+.bars span.na { background: repeating-linear-gradient(45deg, transparent 0 3px, var(--na) 3px 5px); opacity: 0.6; height: 100% !important; }
+.bars-x { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 0.72em; color: var(--muted); }
+.why { font-size: 0.88em; margin: 8px 0 0; }
+.how { margin-top: 14px; font-size: 0.9em; }
+.how summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+
+#map { height: 340px; border-radius: 10px; border: 1px solid var(--line); }
+.legend { font-size: 0.85em; color: var(--muted); margin: 8px 0 0; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin: 0 4px 0 10px; vertical-align: -1px; }
+.dot.place { background: var(--accent); }
+.dot.sensor { background: var(--pred); border-radius: 2px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; font-size: 0.85em; }
+td.num { font-variant-numeric: tabular-nums; }
+.better { color: var(--accent); font-weight: 700; }
+
+.limits { border: 2px solid var(--pred); }
+.limits ul { margin: 0; padding-left: 20px; }
+.limits li { margin: 4px 0; }
+.foot { font-size: 0.8em; color: var(--muted); padding: 8px 0 40px; }
+
+.facts { grid-template-columns: 1fr 1fr; }
+html.big .facts { grid-template-columns: 1fr; }
+.seg.slots { grid-template-columns: 1fr 1fr; }

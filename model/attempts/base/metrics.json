@@ -1,0 +1,298 @@
+{
+  "attempt": "base",
+  "config": {
+    "params": {
+      "n_estimators": 400,
+      "learning_rate": 0.03,
+      "num_leaves": 31,
+      "min_child_samples": 20,
+      "subsample": 0.8,
+      "subsample_freq": 1,
+      "colsample_bytree": 0.8,
+      "verbose": -1,
+      "random_state": 0
+    },
+    "lags": [
+      1,
+      24,
+      168
+    ],
+    "train_pool": "selected",
+    "features": {
+      "level": [
+        "dow",
+        "hour",
+        "weekend",
+        "holiday",
+        "sensor",
+        "temp",
+        "humid",
+        "level_lag1",
+        "level_lag24",
+        "level_lag168"
+      ],
+      "spike": [
+        "dow",
+        "hour",
+        "weekend",
+        "holiday",
+        "sensor",
+        "temp",
+        "humid",
+        "spike_lag1",
+        "spike_lag24",
+        "spike_lag168"
+      ]
+    }
+  },
+  "data_period": [
+    "2026-07-13 00:00:00",
+    "2026-10-18 23:00:00"
+  ],
+  "train_period": [
+    "2026-07-13 00:00:00",
+    "2026-09-24 10:00:00"
+  ],
+  "test_period": [
+    "2026-09-24 11:00:00",
+    "2026-10-18 23:00:00"
+  ],
+  "service_period": [
+    "2026-10-28 00:00:00",
+    "2026-11-03 23:00:00"
+  ],
+  "service_horizon_hours": [
+    217,
+    384
+  ],
+  "sensors_train_pool": 5,
+  "sensors_eval": [
+    "V02Q1940775",
+    "V02Q1940767",
+    "V02Q1940736",
+    "V02Q1940757",
+    "V02Q1940717"
+  ],
+  "targets": {
+    "level": {
+      "label": "소음 수준(시간 평균, dB)",
+      "n_test_hours": 2395,
+      "overall": {
+        "baseline_mae": 3.9444,
+        "ai_1h_mae": 0.9534,
+        "ai_recursive_mae": 2.155,
+        "ref_recent4w_mean_mae": 1.7776,
+        "ref_last_week_naive_mae": 1.2314,
+        "ai_1h_improvement_pct": 75.83,
+        "ai_recursive_improvement_pct": 45.37
+      },
+      "by_horizon_recursive": {
+        "1-24h": {
+          "n": 0,
+          "baseline_mae": null,
+          "ai_recursive_mae": null,
+          "ai_improvement_pct": null,
+          "ref_recent4w_mean_mae": null,
+          "ref_last_week_naive_mae": null
+        },
+        "25-168h": {
+          "n": 295,
+          "baseline_mae": 3.6047,
+          "ai_recursive_mae": 1.3371,
+          "ai_improvement_pct": 62.91,
+          "ref_recent4w_mean_mae": 1.3692,
+          "ref_last_week_naive_mae": 0.8333
+        },
+        "169-216h": {
+          "n": 240,
+          "baseline_mae": 4.1821,
+          "ai_recursive_mae": 1.4656,
+          "ai_improvement_pct": 64.96,
+          "ref_recent4w_mean_mae": 1.7698,
+          "ref_last_week_naive_mae": 0.8833
+        },
+        "service_217-384h": {
+          "n": 840,
+          "baseline_mae": 4.2243,
+          "ai_recursive_mae": 2.032,
+          "ai_improvement_pct": 51.9,
+          "ref_recent4w_mean_mae": 1.8682,
+          "ref_last_week_naive_mae": 1.1834
+        },
+        "385h+": {
+          "n": 1020,
+          "baseline_mae": 3.7563,
+          "ai_recursive_mae": 2.655,
+          "ai_improvement_pct": 29.32,
+          "ref_recent4w_mean_mae": 1.8229,
+          "ref_last_week_naive_mae": 1.456
+        }
+      },
+      "by_sensor": {
+        "V02Q1940775": {
+          "baseline_mae": 0.956,
+          "ai_1h_mae": 0.741,
+          "ai_recursive_mae": 3.3424,
+          "service_horizon_baseline_mae": 1.0399,
+          "service_horizon_ai_mae": 3.3414,
+          "service_horizon_ref_recent4w_mae": 0.9122
+        },
+        "V02Q1940767": {
+          "baseline_mae": 2.5845,
+          "ai_1h_mae": 0.7428,
+          "ai_recursive_mae": 3.0173,
+          "service_horizon_baseline_mae": 2.6875,
+          "service_horizon_ai_mae": 2.9583,
+          "service_horizon_ref_recent4w_mae": 1.5843
+        },
+        "V02Q1940736": {
+          "baseline_mae": 7.2314,
+          "ai_1h_mae": 1.1653,
+          "ai_recursive_mae": 1.4317,
+          "service_horizon_baseline_mae": 7.8595,
+          "service_horizon_ai_mae": 1.3955,
+          "service_horizon_ref_recent4w_mae": 3.1746
+        },
+        "V02Q1940757": {
+          "baseline_mae": 3.8284,
+          "ai_1h_mae": 1.0267,
+          "ai_recursive_mae": 1.5864,
+          "service_horizon_baseline_mae": 4.0764,
+          "service_horizon_ai_mae": 1.1851,
+          "service_horizon_ref_recent4w_mae": 1.6255
+        },
+        "V02Q1940717": {
+          "baseline_mae": 5.1215,
+          "ai_1h_mae": 1.0911,
+          "ai_recursive_mae": 1.397,
+          "service_horizon_baseline_mae": 5.458,
+          "service_horizon_ai_mae": 1.2799,
+          "service_horizon_ref_recent4w_mae": 2.0441
+        }
+      },
+      "service_model": "ai",
+      "feature_importance_gain": {
+        "level_lag1": 2460044.8,
+        "level_lag24": 1332679.9,
+        "hour": 169536.2,
+        "level_lag168": 144957.2,
+        "temp": 105081.9,
+        "humid": 65893.9,
+        "dow": 23326.9,
+        "sensor": 20660.5,
+        "holiday": 2648.9,
+        "weekend": 1628.3
+      }
+    },
+    "spike": {
+      "label": "돌발 소음 지수(시간 최대 - 시간 평균, dB)",
+      "n_test_hours": 2395,
+      "overall": {
+        "baseline_mae": 1.694,
+        "ai_1h_mae": 1.583,
+        "ai_recursive_mae": 1.5057,
+        "ref_recent4w_mean_mae": 1.5216,
+        "ref_last_week_naive_mae": 1.7883,
+        "ai_1h_improvement_pct": 6.55,
+        "ai_recursive_improvement_pct": 11.12
+      },
+      "by_horizon_recursive": {
+        "1-24h": {
+          "n": 0,
+          "baseline_mae": null,
+          "ai_recursive_mae": null,
+          "ai_improvement_pct": null,
+          "ref_recent4w_mean_mae": null,
+          "ref_last_week_naive_mae": null
+        },
+        "25-168h": {
+          "n": 295,
+          "baseline_mae": 1.6092,
+          "ai_recursive_mae": 1.6335,
+          "ai_improvement_pct": -1.51,
+          "ref_recent4w_mean_mae": 1.5613,
+          "ref_last_week_naive_mae": 1.825
+        },
+        "169-216h": {
+          "n": 240,
+          "baseline_mae": 1.6392,
+          "ai_recursive_mae": 1.4025,
+          "ai_improvement_pct": 14.44,
+          "ref_recent4w_mean_mae": 1.3542,
+          "ref_last_week_naive_mae": 1.8
+        },
+        "service_217-384h": {
+          "n": 840,
+          "baseline_mae": 1.7818,
+          "ai_recursive_mae": 1.5499,
+          "ai_improvement_pct": 13.01,
+          "ref_recent4w_mean_mae": 1.6065,
+          "ref_last_week_naive_mae": 1.8611
+        },
+        "385h+": {
+          "n": 1020,
+          "baseline_mae": 1.6592,
+          "ai_recursive_mae": 1.4565,
+          "ai_improvement_pct": 12.22,
+          "ref_recent4w_mean_mae": 1.4796,
+          "ref_last_week_naive_mae": 1.7171
+        }
+      },
+      "by_sensor": {
+        "V02Q1940775": {
+          "baseline_mae": 0.9374,
+          "ai_1h_mae": 1.0145,
+          "ai_recursive_mae": 0.9674,
+          "service_horizon_baseline_mae": 0.9413,
+          "service_horizon_ai_mae": 0.9944,
+          "service_horizon_ref_recent4w_mae": 0.9697
+        },
+        "V02Q1940767": {
+          "baseline_mae": 1.0745,
+          "ai_1h_mae": 1.0386,
+          "ai_recursive_mae": 0.9469,
+          "service_horizon_baseline_mae": 1.0648,
+          "service_horizon_ai_mae": 0.8706,
+          "service_horizon_ref_recent4w_mae": 1.0714
+        },
+        "V02Q1940736": {
+          "baseline_mae": 2.3716,
+          "ai_1h_mae": 1.8598,
+          "ai_recursive_mae": 1.8306,
+          "service_horizon_baseline_mae": 2.5058,
+          "service_horizon_ai_mae": 1.9085,
+          "service_horizon_ref_recent4w_mae": 1.8259
+        },
+        "V02Q1940757": {
+          "baseline_mae": 1.898,
+          "ai_1h_mae": 1.8793,
+          "ai_recursive_mae": 1.7893,
+          "service_horizon_baseline_mae": 2.0356,
+          "service_horizon_ai_mae": 1.8602,
+          "service_horizon_ref_recent4w_mae": 1.9747
+        },
+        "V02Q1940717": {
+          "baseline_mae": 2.1885,
+          "ai_1h_mae": 2.1229,
+          "ai_recursive_mae": 1.9942,
+          "service_horizon_baseline_mae": 2.3613,
+          "service_horizon_ai_mae": 2.116,
+          "service_horizon_ref_recent4w_mae": 2.191
+        }
+      },
+      "service_model": "ai",
+      "feature_importance_gain": {
+        "spike_lag24": 121405.2,
+        "spike_lag1": 118242.0,
+        "spike_lag168": 83124.1,
+        "sensor": 75395.3,
+        "temp": 69728.0,
+        "hour": 67456.4,
+        "humid": 52832.8,
+        "dow": 23020.7,
+        "holiday": 1962.4,
+        "weekend": 1151.8
+      }
+    }
+  }
+}

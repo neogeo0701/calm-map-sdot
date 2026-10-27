@@ -1,0 +1,8 @@
+pandas
+numpy
+lightgbm
+shapely
+pyproj
+openpyxl
+holidays
+matplotlib

@@ -1,0 +1,51 @@
+{
+  "period": [
+    "2026-07-13 00:00:00",
+    "2026-10-18 23:00:00"
+  ],
+  "expected_hours": 2352,
+  "sensors_in_location_file": 1170,
+  "sensors_with_noise": 1062,
+  "r100": {
+    "pairs": 621,
+    "places": 518,
+    "sensors": 436,
+    "places_named": 306,
+    "places_with_sensor_missing_le_20pct": 328,
+    "named_places_with_sensor_missing_le_20pct": 192,
+    "sensors_missing_le_20pct": 249,
+    "by_district_named_ok": {
+      "Mapo-gu": 21,
+      "Yangcheon-gu": 21,
+      "Songpa-gu": 19,
+      "Jongno-gu": 15,
+      "Gwanak-gu": 13,
+      "Gangseo-gu": 11,
+      "Seongdong-gu": 9,
+      "Nowon-gu": 9,
+      "Gangnam-gu": 8,
+      "Yongsan-gu": 8
+    }
+  },
+  "r150": {
+    "pairs": 1110,
+    "places": 905,
+    "sensors": 605,
+    "places_named": 494,
+    "places_with_sensor_missing_le_20pct": 561,
+    "named_places_with_sensor_missing_le_20pct": 327,
+    "sensors_missing_le_20pct": 344,
+    "by_district_named_ok": {
+      "Songpa-gu": 33,
+      "Mapo-gu": 32,
+      "Yangcheon-gu": 30,
+      "Jongno-gu": 25,
+      "Gangseo-gu": 18,
+      "Gwanak-gu": 18,
+      "Nowon-gu": 16,
+      "Seongdong-gu": 13,
+      "Gangnam-gu": 13,
+      "Gangdong-gu": 12
+    }
+  }
+}

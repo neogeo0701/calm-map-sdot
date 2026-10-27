@@ -1,0 +1,421 @@
+{
+  "chosen_attempt": "try1",
+  "note": "MAE 단위 dB. baseline=센서별 요일x시간 평균(학습 구간). ai_recursive=서비스와 같은 재귀 예측. 서비스 화면 값은 service 구간(데이터 마지막 시각으로부터 217~384시간 뒤) 조건과 같다. 세 설정 중 채택에 테스트 구간을 사용했으므로 채택 모델 MAE는 약간 낙관적일 수 있다.",
+  "attempts_summary": {
+    "base": {
+      "level": {
+        "overall": {
+          "baseline_mae": 3.9444,
+          "ai_1h_mae": 0.9534,
+          "ai_recursive_mae": 2.155,
+          "ref_recent4w_mean_mae": 1.7776,
+          "ref_last_week_naive_mae": 1.2314,
+          "ai_1h_improvement_pct": 75.83,
+          "ai_recursive_improvement_pct": 45.37
+        },
+        "service_horizon": {
+          "n": 840,
+          "baseline_mae": 4.2243,
+          "ai_recursive_mae": 2.032,
+          "ai_improvement_pct": 51.9,
+          "ref_recent4w_mean_mae": 1.8682,
+          "ref_last_week_naive_mae": 1.1834
+        }
+      },
+      "spike": {
+        "overall": {
+          "baseline_mae": 1.694,
+          "ai_1h_mae": 1.583,
+          "ai_recursive_mae": 1.5057,
+          "ref_recent4w_mean_mae": 1.5216,
+          "ref_last_week_naive_mae": 1.7883,
+          "ai_1h_improvement_pct": 6.55,
+          "ai_recursive_improvement_pct": 11.12
+        },
+        "service_horizon": {
+          "n": 840,
+          "baseline_mae": 1.7818,
+          "ai_recursive_mae": 1.5499,
+          "ai_improvement_pct": 13.01,
+          "ref_recent4w_mean_mae": 1.6065,
+          "ref_last_week_naive_mae": 1.8611
+        }
+      }
+    },
+    "try1": {
+      "level": {
+        "overall": {
+          "baseline_mae": 3.9444,
+          "ai_1h_mae": 1.4913,
+          "ai_recursive_mae": 1.2804,
+          "ref_recent4w_mean_mae": 1.7776,
+          "ref_last_week_naive_mae": 1.2314,
+          "ai_1h_improvement_pct": 62.19,
+          "ai_recursive_improvement_pct": 67.54
+        },
+        "service_horizon": {
+          "n": 840,
+          "baseline_mae": 4.2243,
+          "ai_recursive_mae": 1.1467,
+          "ai_improvement_pct": 72.85,
+          "ref_recent4w_mean_mae": 1.8682,
+          "ref_last_week_naive_mae": 1.1834
+        }
+      },
+      "spike": {
+        "overall": {
+          "baseline_mae": 1.694,
+          "ai_1h_mae": 1.6123,
+          "ai_recursive_mae": 1.4586,
+          "ref_recent4w_mean_mae": 1.5216,
+          "ref_last_week_naive_mae": 1.7883,
+          "ai_1h_improvement_pct": 4.82,
+          "ai_recursive_improvement_pct": 13.9
+        },
+        "service_horizon": {
+          "n": 840,
+          "baseline_mae": 1.7818,
+          "ai_recursive_mae": 1.5155,
+          "ai_improvement_pct": 14.95,
+          "ref_recent4w_mean_mae": 1.6065,
+          "ref_last_week_naive_mae": 1.8611
+        }
+      }
+    },
+    "try2": {
+      "level": {
+        "overall": {
+          "baseline_mae": 3.9444,
+          "ai_1h_mae": 1.5853,
+          "ai_recursive_mae": 1.4627,
+          "ref_recent4w_mean_mae": 1.7776,
+          "ref_last_week_naive_mae": 1.2314,
+          "ai_1h_improvement_pct": 59.81,
+          "ai_recursive_improvement_pct": 62.92
+        },
+        "service_horizon": {
+          "n": 840,
+          "baseline_mae": 4.2243,
+          "ai_recursive_mae": 1.4149,
+          "ai_improvement_pct": 66.51,
+          "ref_recent4w_mean_mae": 1.8682,
+          "ref_last_week_naive_mae": 1.1834
+        }
+      },
+      "spike": {
+        "overall": {
+          "baseline_mae": 1.694,
+          "ai_1h_mae": 1.5911,
+          "ai_recursive_mae": 1.4684,
+          "ref_recent4w_mean_mae": 1.5216,
+          "ref_last_week_naive_mae": 1.7883,
+          "ai_1h_improvement_pct": 6.07,
+          "ai_recursive_improvement_pct": 13.32
+        },
+        "service_horizon": {
+          "n": 840,
+          "baseline_mae": 1.7818,
+          "ai_recursive_mae": 1.5294,
+          "ai_improvement_pct": 14.17,
+          "ref_recent4w_mean_mae": 1.6065,
+          "ref_last_week_naive_mae": 1.8611
+        }
+      }
+    }
+  },
+  "attempt": "try1",
+  "config": {
+    "params": {
+      "n_estimators": 400,
+      "learning_rate": 0.03,
+      "num_leaves": 31,
+      "min_child_samples": 20,
+      "subsample": 0.8,
+      "subsample_freq": 1,
+      "colsample_bytree": 0.8,
+      "verbose": -1,
+      "random_state": 0
+    },
+    "lags": [
+      168,
+      336
+    ],
+    "train_pool": "selected",
+    "features": {
+      "level": [
+        "dow",
+        "hour",
+        "weekend",
+        "holiday",
+        "sensor",
+        "temp",
+        "humid",
+        "level_lag168",
+        "level_lag336",
+        "level_roll168"
+      ],
+      "spike": [
+        "dow",
+        "hour",
+        "weekend",
+        "holiday",
+        "sensor",
+        "temp",
+        "humid",
+        "spike_lag168",
+        "spike_lag336",
+        "spike_roll168"
+      ]
+    }
+  },
+  "data_period": [
+    "2026-07-13 00:00:00",
+    "2026-10-18 23:00:00"
+  ],
+  "train_period": [
+    "2026-07-13 00:00:00",
+    "2026-09-24 10:00:00"
+  ],
+  "test_period": [
+    "2026-09-24 11:00:00",
+    "2026-10-18 23:00:00"
+  ],
+  "service_period": [
+    "2026-10-28 00:00:00",
+    "2026-11-03 23:00:00"
+  ],
+  "service_horizon_hours": [
+    217,
+    384
+  ],
+  "sensors_train_pool": 5,
+  "sensors_eval": [
+    "V02Q1940775",
+    "V02Q1940767",
+    "V02Q1940736",
+    "V02Q1940757",
+    "V02Q1940717"
+  ],
+  "targets": {
+    "level": {
+      "label": "소음 수준(시간 평균, dB)",
+      "n_test_hours": 2395,
+      "overall": {
+        "baseline_mae": 3.9444,
+        "ai_1h_mae": 1.4913,
+        "ai_recursive_mae": 1.2804,
+        "ref_recent4w_mean_mae": 1.7776,
+        "ref_last_week_naive_mae": 1.2314,
+        "ai_1h_improvement_pct": 62.19,
+        "ai_recursive_improvement_pct": 67.54
+      },
+      "by_horizon_recursive": {
+        "1-24h": {
+          "n": 0,
+          "baseline_mae": null,
+          "ai_recursive_mae": null,
+          "ai_improvement_pct": null,
+          "ref_recent4w_mean_mae": null,
+          "ref_last_week_naive_mae": null
+        },
+        "25-168h": {
+          "n": 295,
+          "baseline_mae": 3.6047,
+          "ai_recursive_mae": 0.8848,
+          "ai_improvement_pct": 75.45,
+          "ref_recent4w_mean_mae": 1.3692,
+          "ref_last_week_naive_mae": 0.8333
+        },
+        "169-216h": {
+          "n": 240,
+          "baseline_mae": 4.1821,
+          "ai_recursive_mae": 0.8113,
+          "ai_improvement_pct": 80.6,
+          "ref_recent4w_mean_mae": 1.7698,
+          "ref_last_week_naive_mae": 0.8833
+        },
+        "service_217-384h": {
+          "n": 840,
+          "baseline_mae": 4.2243,
+          "ai_recursive_mae": 1.1467,
+          "ai_improvement_pct": 72.85,
+          "ref_recent4w_mean_mae": 1.8682,
+          "ref_last_week_naive_mae": 1.1834
+        },
+        "385h+": {
+          "n": 1020,
+          "baseline_mae": 3.7563,
+          "ai_recursive_mae": 1.6153,
+          "ai_improvement_pct": 57.0,
+          "ref_recent4w_mean_mae": 1.8229,
+          "ref_last_week_naive_mae": 1.456
+        }
+      },
+      "by_sensor": {
+        "V02Q1940775": {
+          "baseline_mae": 0.956,
+          "ai_1h_mae": 1.1972,
+          "ai_recursive_mae": 1.1579,
+          "service_horizon_baseline_mae": 1.0399,
+          "service_horizon_ai_mae": 0.8735,
+          "service_horizon_ref_recent4w_mae": 0.9122
+        },
+        "V02Q1940767": {
+          "baseline_mae": 2.5845,
+          "ai_1h_mae": 1.1891,
+          "ai_recursive_mae": 1.0812,
+          "service_horizon_baseline_mae": 2.6875,
+          "service_horizon_ai_mae": 1.0251,
+          "service_horizon_ref_recent4w_mae": 1.5843
+        },
+        "V02Q1940736": {
+          "baseline_mae": 7.2314,
+          "ai_1h_mae": 1.6571,
+          "ai_recursive_mae": 1.4386,
+          "service_horizon_baseline_mae": 7.8595,
+          "service_horizon_ai_mae": 1.4831,
+          "service_horizon_ref_recent4w_mae": 3.1746
+        },
+        "V02Q1940757": {
+          "baseline_mae": 3.8284,
+          "ai_1h_mae": 1.7096,
+          "ai_recursive_mae": 1.4023,
+          "service_horizon_baseline_mae": 4.0764,
+          "service_horizon_ai_mae": 1.0623,
+          "service_horizon_ref_recent4w_mae": 1.6255
+        },
+        "V02Q1940717": {
+          "baseline_mae": 5.1215,
+          "ai_1h_mae": 1.7036,
+          "ai_recursive_mae": 1.322,
+          "service_horizon_baseline_mae": 5.458,
+          "service_horizon_ai_mae": 1.2895,
+          "service_horizon_ref_recent4w_mae": 2.0441
+        }
+      },
+      "service_model": "ai",
+      "feature_importance_gain": {
+        "level_lag168": 2114789.0,
+        "temp": 580514.1,
+        "hour": 508392.7,
+        "level_roll168": 292525.1,
+        "level_lag336": 275294.5,
+        "humid": 228860.8,
+        "sensor": 206212.3,
+        "dow": 56034.8,
+        "weekend": 3041.2,
+        "holiday": 2919.2
+      }
+    },
+    "spike": {
+      "label": "돌발 소음 지수(시간 최대 - 시간 평균, dB)",
+      "n_test_hours": 2395,
+      "overall": {
+        "baseline_mae": 1.694,
+        "ai_1h_mae": 1.6123,
+        "ai_recursive_mae": 1.4586,
+        "ref_recent4w_mean_mae": 1.5216,
+        "ref_last_week_naive_mae": 1.7883,
+        "ai_1h_improvement_pct": 4.82,
+        "ai_recursive_improvement_pct": 13.9
+      },
+      "by_horizon_recursive": {
+        "1-24h": {
+          "n": 0,
+          "baseline_mae": null,
+          "ai_recursive_mae": null,
+          "ai_improvement_pct": null,
+          "ref_recent4w_mean_mae": null,
+          "ref_last_week_naive_mae": null
+        },
+        "25-168h": {
+          "n": 295,
+          "baseline_mae": 1.6092,
+          "ai_recursive_mae": 1.6034,
+          "ai_improvement_pct": 0.36,
+          "ref_recent4w_mean_mae": 1.5613,
+          "ref_last_week_naive_mae": 1.825
+        },
+        "169-216h": {
+          "n": 240,
+          "baseline_mae": 1.6392,
+          "ai_recursive_mae": 1.3099,
+          "ai_improvement_pct": 20.09,
+          "ref_recent4w_mean_mae": 1.3542,
+          "ref_last_week_naive_mae": 1.8
+        },
+        "service_217-384h": {
+          "n": 840,
+          "baseline_mae": 1.7818,
+          "ai_recursive_mae": 1.5155,
+          "ai_improvement_pct": 14.95,
+          "ref_recent4w_mean_mae": 1.6065,
+          "ref_last_week_naive_mae": 1.8611
+        },
+        "385h+": {
+          "n": 1020,
+          "baseline_mae": 1.6592,
+          "ai_recursive_mae": 1.4049,
+          "ai_improvement_pct": 15.33,
+          "ref_recent4w_mean_mae": 1.4796,
+          "ref_last_week_naive_mae": 1.7171
+        }
+      },
+      "by_sensor": {
+        "V02Q1940775": {
+          "baseline_mae": 0.9374,
+          "ai_1h_mae": 1.0225,
+          "ai_recursive_mae": 0.9701,
+          "service_horizon_baseline_mae": 0.9413,
+          "service_horizon_ai_mae": 1.0066,
+          "service_horizon_ref_recent4w_mae": 0.9697
+        },
+        "V02Q1940767": {
+          "baseline_mae": 1.0745,
+          "ai_1h_mae": 1.0858,
+          "ai_recursive_mae": 0.9203,
+          "service_horizon_baseline_mae": 1.0648,
+          "service_horizon_ai_mae": 0.8759,
+          "service_horizon_ref_recent4w_mae": 1.0714
+        },
+        "V02Q1940736": {
+          "baseline_mae": 2.3716,
+          "ai_1h_mae": 1.9182,
+          "ai_recursive_mae": 1.6443,
+          "service_horizon_baseline_mae": 2.5058,
+          "service_horizon_ai_mae": 1.6787,
+          "service_horizon_ref_recent4w_mae": 1.8259
+        },
+        "V02Q1940757": {
+          "baseline_mae": 1.898,
+          "ai_1h_mae": 1.9425,
+          "ai_recursive_mae": 1.7939,
+          "service_horizon_baseline_mae": 2.0356,
+          "service_horizon_ai_mae": 1.9013,
+          "service_horizon_ref_recent4w_mae": 1.9747
+        },
+        "V02Q1940717": {
+          "baseline_mae": 2.1885,
+          "ai_1h_mae": 2.0923,
+          "ai_recursive_mae": 1.9648,
+          "service_horizon_baseline_mae": 2.3613,
+          "service_horizon_ai_mae": 2.1152,
+          "service_horizon_ref_recent4w_mae": 2.191
+        }
+      },
+      "service_model": "ai",
+      "feature_importance_gain": {
+        "spike_roll168": 172933.0,
+        "hour": 88677.3,
+        "spike_lag168": 87834.3,
+        "temp": 72891.9,
+        "humid": 57208.9,
+        "spike_lag336": 57188.5,
+        "sensor": 53920.5,
+        "dow": 20881.9,
+        "holiday": 2758.5,
+        "weekend": 921.8
+      }
+    }
+  }
+}
