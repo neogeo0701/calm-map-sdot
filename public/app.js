@@ -104,23 +104,44 @@ function render() {
     .map((r, i) => {
       const s = r.site, f = r.f;
       const confL = s.confidence.level, confS = s.confidence.spike;
+      const spikeName = i === 0 ? "돌발 소음 지수 <small>(갑자기 커지는 소리 정도)</small>" : "돌발 소음 지수";
       return `<li class="rec">
+        <p class="summary">${summaryLine(f)}</p>
         <div class="rec-head"><span class="rank">${i + 1}</span><span class="rec-title">${s.name}</span>
           <span class="rec-time">${fmtTime(f.t)}</span></div>
         <div class="facts">
-          ${fact("pred", "돌발 소음 지수 <span class='tag pred'>AI 예측</span>", `${n1(f.spike)} dB`, `테스트 오차(MAE) ±${s.mae.spike.used.toFixed(1)} dB · 신뢰도 <span class="tag conf-${confS}">${confS}</span>`)}
-          ${fact("obs", "소음 수준 <span class='tag obs'>지난주 실측</span>", `${n1(f.level)} dB`, `${fmtDay(sourceDay(f.t.slice(0, 10)))} 같은 시각 실측 · 이 방식의 테스트 오차 ±${s.mae.level.used.toFixed(1)} dB · 신뢰도 <span class="tag conf-${confL}">${confL}</span>`)}
+          ${fact("pred", `${spikeName} <span class='tag pred'>AI 예측</span>`, `${n1(f.spike)} dB · ${grade("spike", f.spike)}`, `신뢰도 <span class="tag conf-${confS}">${confS}</span>`)}
+          ${fact("obs", "소음 수준 <span class='tag obs'>지난주 실측</span>", `${n1(f.level)} dB · ${grade("level", f.level)}`, `${fmtDay(sourceDay(f.t.slice(0, 10)))} 같은 시각 실측 · 신뢰도 <span class="tag conf-${confL}">${confL}</span>`)}
           ${fact("obs", "최근 실측 <span class='tag obs'>실측</span>", `평균 ${s.recent.level} · 최대 ${s.recent.max} dB`, `${fmtTime(s.recent.t)} 측정`)}
           ${fact("obs", "최근 1주 평균 <span class='tag obs'>실측</span>", `${n1(s.recent_week.level)} dB · 돌발 ${n1(s.recent_week.spike)} dB`, `${lwk} 7일`)}
-          ${fact("", "센서 위치", `공원 경계에서 ${Math.round(s.dist_m)}m`, `${s.sensor_address} (${s.sensor_serial})`)}
-          ${fact("", "부담 점수", r.score.toFixed(1), `= ${WEIGHT[cond.level]}×(${n1(f.level)}−35) + ${WEIGHT[cond.spike]}×${n1(f.spike)}`)}
+          ${fact("", "센서 위치", `공원 경계에서 ${Math.round(s.dist_m)}m`, "")}
         </div>
         ${dayBars(s, cond, r.hour)}
-        <p class="why">돌발 소음 지수는 단순 요일·시간 평균으로는 같은 시각 ${f.spike_baseline == null ? "<span class='tag na'>정보 부족</span>" : `${n1(f.spike_baseline)} dB`}입니다.
-        이 장소의 돌발 지수 테스트 오차는 AI ${s.mae.spike.used.toFixed(2)} dB, 단순 평균 ${s.mae.spike.baseline.toFixed(2)} dB였습니다.</p>
+        <details class="more">
+          <summary>자세히 보기</summary>
+          <div class="facts">
+            ${fact("pred", "돌발 소음 지수 평균 오차", `AI ±${s.mae.spike.used.toFixed(2)} dB`, `같은 기간 요일·시간 평균 ±${s.mae.spike.baseline.toFixed(2)} dB (테스트 기간, 이 장소)`)}
+            ${fact("obs", "소음 수준 평균 오차", `지난주 그대로 ±${s.mae.level.used.toFixed(2)} dB`, `요일·시간 평균 ±${s.mae.level.baseline.toFixed(2)} · AI ±${s.mae.level.ai.toFixed(2)} dB (테스트 기간, 이 장소)`)}
+            ${fact("", "단순 평균이었다면", `돌발 ${f.spike_baseline == null ? "정보 부족" : n1(f.spike_baseline) + " dB"} · 소음 ${f.level_baseline == null ? "정보 부족" : n1(f.level_baseline) + " dB"}`, "같은 요일·시각의 2024년 이후 평균")}
+            ${fact("", "부담 점수", r.score.toFixed(1), `= ${WEIGHT[cond.level]}×(${n1(f.level)}−35) + ${WEIGHT[cond.spike]}×${n1(f.spike)}`)}
+            ${fact("", "센서", s.sensor_serial, s.sensor_address)}
+          </div>
+        </details>
       </li>`;
     })
     .join("");
+}
+
+// 보호자용 등급: 테스트 기간 실측 분포의 1/3·2/3 분위값 기준(grade_cuts)
+function grade(t, v) {
+  if (v == null) return "정보 부족";
+  const [a, b] = DATA.grade_cuts[t];
+  return v < a ? "적은 편" : v < b ? "보통" : "많은 편";
+}
+
+function summaryLine(f) {
+  const lv = grade("level", f.level), sp = grade("spike", f.spike);
+  return `소리 크기 <b>${lv}</b>, 갑자기 커지는 소리 <b>${sp}</b>`;
 }
 
 function renderPerf() {
@@ -129,17 +150,17 @@ function renderPerf() {
   const sp = T.spike, lv = T.level;
   const gh = "https://github.com/neogeo0701/calm-map-sdot/blob/main/";
   $("#perf").innerHTML = `
-    <p class="muted">시간순으로 학습·검증·테스트를 나눴습니다. 검증 ${DATA.split.val[0].slice(5, 10)}~${DATA.split.val[1].slice(5, 10)}, 테스트 ${DATA.split.test[0].slice(5, 10)}~${DATA.split.test[1].slice(5, 10)}.
-    방법은 검증 구간으로만 골랐고, 테스트는 마지막에 한 번만 평가했습니다. 아래는 테스트 결과로, 화면과 같은 조건(데이터 마지막 시각에서 ${DATA.horizon_hours[0]}~${DATA.horizon_hours[1]}시간 뒤)의 평균 절대 오차(MAE, dB, 낮을수록 정확)입니다. 5개 센서, 실측 ${sp.n}시간.</p>
+    <p class="muted">시간순으로 학습·검증·테스트를 나눴습니다. 학습 ${DATA.spike_history_start.slice(0, 7)}~, 검증 ${DATA.split.val[0].slice(5, 10)}~${DATA.split.val[1].slice(5, 10)}, 테스트 ${DATA.split.test[0].slice(5, 10)}~${DATA.split.test[1].slice(5, 10)}.
+    방법은 검증 구간으로만 골랐고, 테스트는 마지막에 한 번만 평가했습니다. 아래는 테스트 결과로, 화면과 같은 조건(데이터 마지막 시각에서 ${DATA.horizon_hours[0]}~${DATA.horizon_hours[1]}시간 뒤)의 <b>평균 오차</b>(dB, 예측과 실제의 차이 평균, 낮을수록 정확)입니다. 모든 방법이 같은 학습 기간(2024-01 이후)·같은 테스트 시간을 씁니다. 5개 센서, 실측 ${sp.n}시간.</p>
     <table><thead><tr><th>대상</th><th>AI</th><th>요일·시간<br>평균</th><th>직전 4주<br>평균</th><th>지난주<br>그대로</th></tr></thead>
     <tbody>
     <tr><td>돌발 소음 지수<br><small>화면: AI</small></td>${c(sp.ai, true)}${c(sp.baseline)}${c(sp.ref_recent4w_mean)}${c(sp.ref_last_week_naive)}</tr>
     <tr><td>소음 수준<br><small>화면: 지난주 그대로</small></td>${c(lv.ai)}${c(lv.baseline)}${c(lv.ref_recent4w_mean)}${c(lv.ref_last_week_naive, true)}</tr>
     </tbody></table>
-    <p class="muted"><b>AI의 역할은 돌발 소음 지수 예측입니다.</b> 돌발 지수 AI는 ${DATA.spike_history_start.slice(0, 7)}부터 약 34개월 실측으로 학습했고, 월·주차·전년 같은 시기 값 같은 계절 정보도 씁니다.
-    네 방법 중 오차가 가장 작지만, 같은 긴 기간으로 만든 요일·시간 평균과의 차이는 ${(sp.baseline - sp.ai).toFixed(2)}dB로 거의 같습니다. "지난주 그대로"보다는 ${(100 * (sp.ref_last_week_naive - sp.ai) / sp.ref_last_week_naive).toFixed(1)}% 작습니다.
-    소음 수준은 AI가 "지난주 그대로"를 넘지 못해(검증 ${V.level.ai_try2.toFixed(2)} vs ${V.level.ref_last_week_naive.toFixed(2)}dB) 화면에는 지난주 같은 요일·시각 실측값을 그대로 씁니다(이 행의 비교는 2026-07-13부터의 자료 기준).
-    결측 시간은 보간하지 않고 평가에서 뺐습니다. 자세한 수치: <a href="${gh}model/attempts/long_history/test_metrics.json">돌발 지수</a> · <a href="${gh}model/metrics.json">소음 수준</a></p>`;
+    <p class="muted"><b>AI의 역할은 돌발 소음 지수(갑자기 커지는 소리 정도) 예측입니다.</b> AI는 약 34개월 실측과 월·주차·전년 같은 시기 값 같은 계절 정보로 학습했습니다.
+    네 방법 중 평균 오차가 가장 작지만, 요일·시간 평균과의 차이는 ${(sp.baseline - sp.ai).toFixed(2)}dB로 거의 같습니다. "지난주 그대로"보다는 ${(100 * (sp.ref_last_week_naive - sp.ai) / sp.ref_last_week_naive).toFixed(1)}% 작습니다.
+    소음 수준은 AI가 검증에서는 "지난주 그대로"보다 나았지만(${V.level.ai_S1.toFixed(2)} vs ${V.level.ref_last_week_naive.toFixed(2)}dB) 테스트에서 못 미쳐(${lv.ai.toFixed(2)} vs ${lv.ref_last_week_naive.toFixed(2)}dB) 화면에는 지난주 같은 요일·시각 실측값을 그대로 씁니다.
+    결측 시간은 보간하지 않고 평가에서 뺐습니다. 자세한 수치: <a href="${gh}model/attempts/long_history/test_metrics.json">test_metrics.json</a></p>`;
 }
 
 function renderMap() {

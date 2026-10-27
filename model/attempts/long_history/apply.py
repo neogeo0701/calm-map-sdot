@@ -110,3 +110,32 @@ json.dump(P, open("public/predictions.json", "w", encoding="utf-8"), ensure_asci
 print("spike None:", sum(f["spike"] is None for s in P["sites"] for f in s["forecast"]))
 print({s["name"]: (s["mae"]["spike"], s["confidence"]["spike"]) for s in P["sites"]})
 print("top importance:", [names.get(a, a) for a, _ in items[::-1][:5]])
+
+
+# --- (2026-10-27 추가) 성능 표 기준 통일 + 보호자용 3분위 등급
+LT = test["results"]["level"]
+LVd = val["results"]["level"]["service_horizon_mae"]
+lv = LT["service_horizon_mae"]
+P["test"]["level"] = {"n": LT["n_service_hours"], "ai": lv[f"ai_{NAME}"], "baseline": lv["baseline"], "ref_recent4w_mean": lv["ref_recent4w_mean"],
+                      "ref_last_week_naive": lv["ref_last_week_naive"], "ref_last_year_same": lv["ref_last_year_same"]}
+P["validation"]["level"] = LVd
+P["sources"]["level"] = "model/attempts/long_history/test_metrics.json (화면 값은 지난주 그대로)"
+# 소음 수준 같은 시각 요일×시간 평균(2024-01 이후)
+trl = d[(d.measured_at < start) & d.level.notna()]
+gl = trl.groupby(["serial", "dow", "hour"])["level"].agg(["mean", "count"])
+jl = d.join(gl, on=["serial", "dow", "hour"]).set_index(["serial", "measured_at"])
+for site in P["sites"]:
+    ser = site["sensor_serial"]
+    b = LT["by_sensor"][ser]
+    site["mae"]["level"] = {"used": b["ref_last_week_naive"], "baseline": b["baseline"], "ai": b[f"ai_{NAME}"]}
+    for f in site["forecast"]:
+        r = jl.loc[(ser, pd.Timestamp(f["t"]))]
+        f["level_baseline"] = round(float(r["mean"]), 1) if r["count"] >= 3 else None
+# 등급 기준: 테스트 기간(2026-09-24 11시 ~ 10-18) 5개 센서 실측 분포의 3분위
+tw = d[(d.measured_at >= R.T_TEST) & (d.measured_at <= t1)]
+P["grade_cuts"] = {"period": [str(R.T_TEST)[:16], str(t1)[:16]],
+                   "level": [round(float(tw["level"].quantile(q)), 1) for q in (1 / 3, 2 / 3)],
+                   "spike": [round(float(tw.spike.quantile(q)), 1) for q in (1 / 3, 2 / 3)],
+                   "n": {"level": int(tw["level"].notna().sum()), "spike": int(tw.spike.notna().sum())}}
+json.dump(P, open("public/predictions.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+print("unified test.level:", P["test"]["level"], "grade_cuts:", P["grade_cuts"])

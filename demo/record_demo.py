@@ -111,13 +111,13 @@ with sync_playwright() as p:
     r.sub("초록 = 공원, 주황 = 센서. 지도에는 선정 장소와 센서만 표시합니다", 7,
           lambda: (page.locator(".leaflet-marker-icon").first.click(), page.wait_for_timeout(400), r.hold(0.1)))
 
-    # 0:55 예측 결과와 기준 모델 대비 MAE
+    # 0:55 예측 결과와 기준 모델 대비 평균 오차(MAE)
     r.slide("test")
     r.sub("2024년부터 약 34개월 실측으로 학습, 검증 2.1주 · 테스트 3.5주로 나눠 확인했습니다", 9)
     r.sub("돌발 소음 지수: 검정 = 실측, 주황 = AI 예측, 파란 점선 = 요일·시간 평균", 7)
     r.slide("mae")
-    r.sub("돌발 소음 지수: AI 1.48dB로 지난주 그대로(1.86)보다 작고, 긴 기간 평균(1.49)과는 거의 같습니다", 8)
-    r.sub("소음 수준은 AI(1.41)가 '지난주 그대로'(1.18dB)를 넘지 못해 지난주 값을 씁니다", 9)
+    r.sub("돌발 소음 지수(갑자기 커지는 소리 정도) 평균 오차: AI 1.48dB, 지난주 그대로 1.86, 긴 기간 평균 1.49", 8)
+    r.sub("소음 수준은 AI(1.24)가 '지난주 그대로'(1.18dB)를 넘지 못해 지난주 값을 씁니다", 9)
     r.slide("importance")
     r.sub("돌발 지수 AI가 주로 본 것: 1주 전 같은 시각, 1주 전 주간 평균, 시간대", 7)
 
@@ -128,11 +128,18 @@ with sync_playwright() as p:
     page.wait_for_timeout(1200)
     r.sub("조건 3개: 소리 크기 민감도, 갑작스러운 소리 민감도, 요일·시간대", 6)
     r.sub("10월 31일(토) 오후 15~18시, 둘 다 '보통'으로 추천 3곳", 6, lambda: r.scroll_to("#r-title", 1.2, 20))
-    r.sub("근거 카드: 값의 출처(AI 예측 / 지난주 실측)와 오차, 최근 실측, 센서 거리, 점수식", 7, lambda: r.scroll_to("#recs .rec .facts", 1.2, 150))
+    r.sub("카드 맨 위 한 줄 요약: '소리 크기 적은 편, 갑자기 커지는 소리 많은 편'", 7, lambda: r.scroll_to("#recs li:first-child .summary", 1.2, 110))
+    r.sub("그 아래 값의 출처(AI 예측 / 지난주 실측), 신뢰도, 최근 실측, 센서 거리", 6, lambda: r.scroll_to("#recs li:first-child .facts", 1.0, 150))
+    r.sub("심사 포인트: '자세히 보기'를 펼치면 평균 오차, 단순 평균 비교, 점수 계산식, 센서 번호", 10,
+          lambda: (r.scroll_to("#recs li:first-child details", 1.0, 160), r.click("#recs li:first-child details summary"),
+                   r.scroll_to("#recs li:first-child details", 0.8, 110)))
+    r.sub("보호자에게는 접어 두고 요약만 먼저 보여 줍니다", 3,
+          lambda: (r.click("#recs li:first-child details summary", 0.5), r.scroll_to("#recs li:first-child", 0.8, 110)))
     r.sub("시연 1: 갑작스러운 소리에 더 예민한 아이라면", 4, lambda: r.scroll_to("#cond", 1.0))
     r.sub("소리 크기 '낮음', 갑작스러운 소리 '높음'으로 바꿉니다", 6,
           lambda: (r.click(radio("level", "low")), r.click(radio("spike", "high"))))
-    r.sub("3위가 거여공원(16시) → 삼전공원(15시)으로 바뀌었습니다", 9, lambda: r.scroll_to("#r-title", 1.2, 20))
+    r.sub("3위가 거여공원(16시·갑자기 커지는 소리 많은 편) → 삼전공원(15시·보통)으로 바뀌었습니다", 9,
+          lambda: (r.scroll_to("#r-title", 1.2, 20), r.hold(2.5), r.scroll_to("#recs li:nth-child(3)", 1.2, 110)))
     r.sub("시연 2: 수요일 오전, 계속되는 소리에 더 예민한 아이라면", 4, lambda: r.scroll_to("#cond", 1.0))
     r.sub("10/28(수), 오전 9~12시, 소리 크기 '높음', 갑작스러운 소리 '낮음'", 7,
           lambda: (r.click(radio("day", "2026-10-28")), r.click(radio("slot", "9-12")),

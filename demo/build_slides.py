@@ -17,6 +17,8 @@ NT = m["test"]["spike"]["n"]
 # 돌발 소음 지수는 장기 이력 실험 결과로 교체(DECISIONS.md)
 LH = json.load(open("model/attempts/long_history/test_metrics.json", encoding="utf-8"))
 _s = LH["results"]["spike"]["service_horizon_mae"]
+_l = LH["results"]["level"]["service_horizon_mae"]  # 성능 표 기준 통일(2024-01 이후 학습)
+T["level"] = {"ai_try2": _l["ai_S1"], "baseline": _l["baseline"], "ref_recent4w_mean": _l["ref_recent4w_mean"], "ref_last_week_naive": _l["ref_last_week_naive"]}
 T["spike"] = {"ai_try1": _s["ai_S1"], "baseline": _s["baseline"], "ref_recent4w_mean": _s["ref_recent4w_mean"], "ref_last_week_naive": _s["ref_last_week_naive"]}
 shutil.copy("model/feature_importance.png", "demo/feature_importance.png")
 
@@ -82,7 +84,7 @@ img{{max-width:100%;max-height:470px;object-fit:contain;background:#fff;border:1
   <img src="test_actual_vs_pred_spike.png">
 </section>
 <section id="mae">
-  <h2>테스트(마지막 1회 평가) · 화면과 같은 9~16일 앞 예측의 오차 MAE</h2>
+  <h2>테스트(마지막 1회 평가) · 화면과 같은 9~16일 앞 예측의 평균 오차</h2>
   <div class="grid">
     <div><p>돌발 소음 지수 — <b>AI 사용</b></p><div class="big">{T['spike']['ai_try1']:.2f} dB</div>
       <p>요일·시간 평균 {T['spike']['baseline']:.2f} · 직전 4주 {T['spike']['ref_recent4w_mean']:.2f} · 지난주 그대로 {T['spike']['ref_last_week_naive']:.2f} dB<br>
@@ -91,7 +93,7 @@ img{{max-width:100%;max-height:470px;object-fit:contain;background:#fff;border:1
       <p>"지난주 그대로" {T['level']['ref_last_week_naive']:.2f} vs AI {T['level']['ai_try2']:.2f} dB<br>
       <b>AI가 단순 방법을 넘지 못함</b> → 화면은 지난주 같은 시각 실측값 사용</p></div>
   </div>
-  <p class="muted">시간순 3분할(검증 2.1주 · 테스트 3.5주, 학습은 그 이전). 방법·교체 규칙은 테스트 전에 정하고 테스트는 한 번만 평가 · 5개 센서 · 실측 {NT}시간</p>
+  <p class="muted">모든 방법 같은 학습 기간(2024-01 이후) · 시간순 3분할(검증 2.1주 · 테스트 3.5주, 학습은 그 이전). 방법·교체 규칙은 테스트 전에 정하고 테스트는 한 번만 평가 · 5개 센서 · 실측 {NT}시간</p>
 </section>
 <section id="importance">
   <h2>돌발 소음 지수 AI가 주로 본 것: 1주 전 같은 시각, 1주 전 주간 평균, 시간대 (계절 정보 약 12%)</h2>

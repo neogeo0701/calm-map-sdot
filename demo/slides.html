@@ -40,16 +40,16 @@ img{max-width:100%;max-height:470px;object-fit:contain;background:#fff;border:1p
   <img src="test_actual_vs_pred_spike.png">
 </section>
 <section id="mae">
-  <h2>테스트(마지막 1회 평가) · 화면과 같은 9~16일 앞 예측의 오차 MAE</h2>
+  <h2>테스트(마지막 1회 평가) · 화면과 같은 9~16일 앞 예측의 평균 오차</h2>
   <div class="grid">
     <div><p>돌발 소음 지수 — <b>AI 사용</b></p><div class="big">1.48 dB</div>
       <p>요일·시간 평균 1.49 · 직전 4주 1.61 · 지난주 그대로 1.86 dB<br>
       <b>지난주 그대로·직전 4주보다 작고, 긴 기간(2024~) 요일·시간 평균과는 거의 같음</b> <span class="muted">(약 34개월 실측 + 계절 정보로 학습)</span></p></div>
     <div><p>소음 수준 — <b>AI 미사용</b></p><div class="big" style="color:#5b6168">1.18 dB</div>
-      <p>"지난주 그대로" 1.18 vs AI 1.41 dB<br>
+      <p>"지난주 그대로" 1.18 vs AI 1.24 dB<br>
       <b>AI가 단순 방법을 넘지 못함</b> → 화면은 지난주 같은 시각 실측값 사용</p></div>
   </div>
-  <p class="muted">시간순 3분할(검증 2.1주 · 테스트 3.5주, 학습은 그 이전). 방법·교체 규칙은 테스트 전에 정하고 테스트는 한 번만 평가 · 5개 센서 · 실측 840시간</p>
+  <p class="muted">모든 방법 같은 학습 기간(2024-01 이후) · 시간순 3분할(검증 2.1주 · 테스트 3.5주, 학습은 그 이전). 방법·교체 규칙은 테스트 전에 정하고 테스트는 한 번만 평가 · 5개 센서 · 실측 840시간</p>
 </section>
 <section id="importance">
   <h2>돌발 소음 지수 AI가 주로 본 것: 1주 전 같은 시각, 1주 전 주간 평균, 시간대 (계절 정보 약 12%)</h2>
